@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/StockGestion_jar</output-path>
     <root id="archive" name="StockGestion.jar">
       <element id="module-output" name="StockGestion" />
-      <element id="extracted-dir" path="$USER_HOME$/Downloads/sqlite-jdbc-3.21.0.jar" path-in-jar="/" />
+      <element id="library" level="project" name="sqlite-jdbc-3.21.0" />
     </root>
   </artifact>
 </component>

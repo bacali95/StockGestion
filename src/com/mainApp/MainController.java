@@ -4,7 +4,6 @@ import com.DBUtils.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -12,7 +11,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 
-import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -28,17 +26,21 @@ import static javafx.collections.FXCollections.observableHashMap;
 
 public class MainController implements Initializable {
 
-    public ObservableList<BorrowerData> borrowerData;
-    public ObservableList<MaterialData> materialData;
-    public ObservableMap<String, MaterialData> empruntedMaterial;
-    public ObservableList<EmpruntData> empruntData;
-    public ObservableList<EmpruntData> deletedEmpruntData;
-    public Map<String, String> borrowersFields;
-    public Map<String, String> materialsFields;
-    public DropShadow errorShadow;
+    private ObservableList<BorrowerData> borrowerData;
+    private ObservableList<MaterialData> materialData;
+    private ObservableMap<String, MaterialData> empruntedMaterial;
+    private ObservableList<EmpruntData> empruntData;
+    private ObservableList<EmpruntData> deletedEmpruntData;
+    private Map<String, String> borrowersFields;
+    private Map<String, String> materialsFields;
+    private DropShadow errorShadow;
+    private int initBorrowedQt;
 
     @FXML
     public TabPane tabPane;
+
+    @FXML
+    public Button switchToEmpruntBtn;
 
     @FXML
     public Tab empruntTab;
@@ -47,10 +49,10 @@ public class MainController implements Initializable {
     public Tab ongletEmprunt;
 
     @FXML
-    public ComboBox<borrowersFilterBy> comboBoxFilterBy;
+    public ComboBox<BorrowersFilter> comboBoxFilterBy;
 
     @FXML
-    public ComboBox<job> workCombox;
+    public ComboBox<Profession> workCombox;
 
     @FXML
     public Button searchBtn;
@@ -92,7 +94,7 @@ public class MainController implements Initializable {
     public TextField textTel;
 
     @FXML
-    public ComboBox<job> textWork;
+    public ComboBox<Profession> textWork;
 
     @FXML
     public Button addBtn;
@@ -121,13 +123,11 @@ public class MainController implements Initializable {
     @FXML
     public TableColumn<MaterialData, Integer> matQtColumn;
 
-    /************************************************************************************************************/
+    @FXML
+    public ComboBox<MaterialsFilter> matComboboxFilterBy;
 
     @FXML
-    public ComboBox<materialsFilterBy> matComboboxFilterBy;
-
-    @FXML
-    public ComboBox<materialTypes> matTypeCombobox;
+    public ComboBox<MaterialTypes> matTypeCombobox;
 
     @FXML
     public TextField matSearchValue;
@@ -163,7 +163,7 @@ public class MainController implements Initializable {
     public TextArea textMatDescription;
 
     @FXML
-    public ComboBox<materialTypes> textMatType;
+    public ComboBox<MaterialTypes> textMatType;
 
     @FXML
     public Button matSearchBtn;
@@ -189,29 +189,151 @@ public class MainController implements Initializable {
     @FXML
     public TableColumn<BorrowerData, Integer> berrQtColumn;
 
+    @FXML
+    public ComboBox<EmpruntTypes> textTypeToEmprunt;
+
+    @FXML
+    public Label empLabelID;
+
+    @FXML
+    public Label empLabelFirstName;
+
+    @FXML
+    public Label empLabelEmail;
+
+    @FXML
+    public Label empLabelWork;
+
+    @FXML
+    public Label empLabelLastName;
+
+    @FXML
+    public Label empLabelTel;
+
+    @FXML
+    public ComboBox<MaterialTypes> empMatComboboxType;
+
+    @FXML
+    public TextField empMatSearchValue;
+
+    @FXML
+    public ComboBox<MaterialsFilter> empMatComboboxFilterBy;
+
+    @FXML
+    public Button empMatSearchBtn;
+
+    @FXML
+    public TableView<MaterialData> tabEmpMat;
+
+    @FXML
+    public TableColumn<MaterialData, String> empMatIDColumn;
+
+    @FXML
+    public TableColumn<MaterialData, String> empMatNameColumn;
+
+    @FXML
+    public TableColumn<MaterialData, String> empMatTypeColumn;
+
+    @FXML
+    public TableColumn<MaterialData, Integer> empMatQtColumn;
+
+    @FXML
+    public TableView<EmpruntData> emprunTable;
+
+    @FXML
+    public TableColumn<EmpruntData, String> empruntNameColumn;
+
+    @FXML
+    public TableColumn<EmpruntData, String> empruntDEColumn;
+
+    @FXML
+    public TableColumn<EmpruntData, String> empruntDRColumn;
+
+    @FXML
+    public TableColumn<EmpruntData, String> empruntRefColumn;
+
+    @FXML
+    public TableColumn<EmpruntData, Integer> empruntQtColumn;
+
+    @FXML
+    public TableColumn<EmpruntData, Integer> empruntTypeColumn;
+
+    @FXML
+    public Label textEmpMatID;
+
+    @FXML
+    public Label textEmpMatQt;
+
+    @FXML
+    public Label textEmpMatName;
+
+    @FXML
+    public Label textEmpMatType;
+
+    @FXML
+    public DatePicker textDEToEmprunt;
+
+    @FXML
+    public DatePicker textDRToEmprunt;
+
+    @FXML
+    public Spinner<Integer> textQtToEmprunt;
+
+    @FXML
+    public TextField textRefToEmprunt;
+
+    @FXML
+    public Button cancelEmpBtn;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.empruntData = observableArrayList();
         errorShadow = new DropShadow();
         errorShadow.setWidth(21);
         errorShadow.setHeight(21);
         errorShadow.setRadius(10);
         errorShadow.setSpread(0);
         errorShadow.setColor(Color.rgb(250, 0, 0));
-        /************************************************************************************************************/
+
+        this.empruntData = observableArrayList();
+        this.empruntedMaterial = observableHashMap();
+        this.deletedEmpruntData = observableArrayList();
+
         borrowersFields = new HashMap<>();
-        borrowersFields.put(borrowersFilterBy.Identifiant.value(), "ID");
-        borrowersFields.put(borrowersFilterBy.Nom.value(), "firstName");
-        borrowersFields.put(borrowersFilterBy.Prénom.value(), "lastName");
-        borrowersFields.put(borrowersFilterBy.Email.value(), "email");
-        borrowersFields.put(borrowersFilterBy.Téléphone.value(), "phoneNumber");
-        borrowersFields.put(borrowersFilterBy.Work.value(), "work");
-        borrowersFields.put(borrowersFilterBy.Tous.value(), "all");
-        this.comboBoxFilterBy.setItems(observableArrayList(borrowersFilterBy.values()));
-        this.comboBoxFilterBy.setValue(borrowersFilterBy.Tous);
-        this.workCombox.setItems(observableArrayList(job.values()));
-        this.textWork.setItems(observableArrayList(job.values()));
+        borrowersFields.put(BorrowersFilter.Identifiant.value(), "ID");
+        borrowersFields.put(BorrowersFilter.Nom.value(), "firstName");
+        borrowersFields.put(BorrowersFilter.Prénom.value(), "lastName");
+        borrowersFields.put(BorrowersFilter.Email.value(), "email");
+        borrowersFields.put(BorrowersFilter.Téléphone.value(), "phoneNumber");
+        borrowersFields.put(BorrowersFilter.Work.value(), "work");
+        borrowersFields.put(BorrowersFilter.Tous.value(), "all");
+
+        materialsFields = new HashMap<>();
+        materialsFields.put(MaterialsFilter.Identifiant.value(), "ID");
+        materialsFields.put(MaterialsFilter.Nom.value(), "name");
+        materialsFields.put(MaterialsFilter.Type.value(), "type");
+        materialsFields.put(MaterialsFilter.Tous.value(), "all");
+
+        this.comboBoxFilterBy.setItems(observableArrayList(BorrowersFilter.values()));
+        this.comboBoxFilterBy.setValue(BorrowersFilter.Tous);
+        this.workCombox.setItems(observableArrayList(Profession.values()));
+        this.textWork.setItems(observableArrayList(Profession.values()));
+        this.matComboboxFilterBy.setItems(observableArrayList(MaterialsFilter.values()));
+        this.matComboboxFilterBy.setValue(MaterialsFilter.Tous);
+        this.matTypeCombobox.setItems(observableArrayList(MaterialTypes.values()));
+        this.textMatType.setItems(observableArrayList(MaterialTypes.values()));
+        this.empMatComboboxFilterBy.setItems(observableArrayList(MaterialsFilter.values()));
+        this.empMatComboboxFilterBy.setValue(MaterialsFilter.Tous);
+        this.empMatComboboxType.setItems(observableArrayList(MaterialTypes.values()));
+        this.textTypeToEmprunt.setItems(observableArrayList(EmpruntTypes.values()));
+
+        this.searchBtn.fire();
+        this.matSearchBtn.fire();
+
+        this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
+        this.textMatQt.setEditable(true);
+        this.textQtToEmprunt.setEditable(true);
+        this.empruntTab.setDisable(true);
+
         this.tableBorrowers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             BorrowerData borrowerData = this.tableBorrowers.getSelectionModel().getSelectedItem();
             if (borrowerData != null) {
@@ -220,30 +342,17 @@ public class MainController implements Initializable {
                 this.textLName.setText(borrowerData.getLastName());
                 this.textEmail.setText(borrowerData.getEmail());
                 this.textTel.setText(borrowerData.getPhoneNumber());
-                this.textWork.setValue(job.valueOf(borrowerData.getWork()));
+                this.textWork.setValue(Profession.valueOf(borrowerData.getWork()));
                 this.materialData = getBorrowedMaterial();
-                this.matIDColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("ID"));
-                this.matNameColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("name"));
-                this.matTypeColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("type"));
-                this.matReferenceColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("reference"));
-                this.matQtColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, Integer>("availableQuantity"));
+                this.matIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
+                this.matNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+                this.matTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+                this.matReferenceColumn.setCellValueFactory(new PropertyValueFactory<>("reference"));
+                this.matQtColumn.setCellValueFactory(new PropertyValueFactory<>("availableQuantity"));
                 this.tabMaterials.setItems(null);
                 this.tabMaterials.setItems(this.materialData);
             }
         });
-        this.searchBtn.fire();
-        /************************************************************************************************************/
-        materialsFields = new HashMap<>();
-        materialsFields.put(materialsFilterBy.Identifiant.value(), "ID");
-        materialsFields.put(materialsFilterBy.Nom.value(), "name");
-        materialsFields.put(materialsFilterBy.Type.value(), "type");
-        materialsFields.put(materialsFilterBy.Tous.value(), "all");
-        this.matComboboxFilterBy.setItems(observableArrayList(materialsFilterBy.values()));
-        this.matComboboxFilterBy.setValue(materialsFilterBy.Tous);
-        this.matTypeCombobox.setItems(observableArrayList(materialTypes.values()));
-        this.textMatType.setItems(observableArrayList(materialTypes.values()));
-        this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
-        this.textMatQt.setEditable(true);
         this.tableMaterials.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             MaterialData materialData = this.tableMaterials.getSelectionModel().getSelectedItem();
             if (materialData != null) {
@@ -252,96 +361,77 @@ public class MainController implements Initializable {
                 this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
                 this.textMatQt.increment(materialData.getInitQuantity() - 1);
                 this.textMatDescription.setText(materialData.getDescription());
-                this.textMatType.setValue(materialTypes.valueOf(materialData.getType()));
+                this.textMatType.setValue(MaterialTypes.valueOf(materialData.getType()));
                 this.borrowerData = getMaterialBorrowers();
-                this.berrIDColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("ID"));
-                this.berrFnameColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("firstName"));
-                this.berrLnameColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("lastName"));
-                this.berrWorkColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("work"));
-                this.berrReferenceColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("reference"));
-                this.berrQtColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, Integer>("totalBorrowedMaterial"));
+                this.berrIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
+                this.berrFnameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+                this.berrLnameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+                this.berrWorkColumn.setCellValueFactory(new PropertyValueFactory<>("work"));
+                this.berrReferenceColumn.setCellValueFactory(new PropertyValueFactory<>("reference"));
+                this.berrQtColumn.setCellValueFactory(new PropertyValueFactory<>("totalBorrowedMaterial"));
                 this.tabBorrowers.setItems(null);
                 this.tabBorrowers.setItems(this.borrowerData);
             }
         });
-        this.matSearchBtn.fire();
-        /************************************************************************************************************/
-        this.empMatComboboxFilterBy.setItems(observableArrayList(materialsFilterBy.values()));
-        this.empMatComboboxFilterBy.setValue(materialsFilterBy.Tous);
-        this.empMatComboboxType.setItems(observableArrayList(materialTypes.values()));
-        /************************************************************************************************************/
-        this.empruntTab.setDisable(true);
-        this.empruntedMaterial = observableHashMap();
-        this.deletedEmpruntData = observableArrayList();
-
-        this.emprunTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            System.out.println(this.emprunTable.getSelectionModel().getSelectedItem());
-        });
     }
 
     @FXML
-    public void searchBorrowers(ActionEvent actionEvent) {
-        if (this.comboBoxFilterBy.getValue() == null || this.comboBoxFilterBy.getValue().value().equals(borrowersFilterBy.Tous.value())) {
+    public void searchBorrowers() {
+        if (this.comboBoxFilterBy.getValue() == null || this.comboBoxFilterBy.getValue().value().equals(BorrowersFilter.Tous.value())) {
             this.borrowerData = getBorrowersByData("", "");
-        } else if (this.comboBoxFilterBy.getValue().value().equals(borrowersFilterBy.Work.value()) && this.workCombox.getValue() != null) {
+        } else if (this.comboBoxFilterBy.getValue().value().equals(BorrowersFilter.Work.value()) && this.workCombox.getValue() != null) {
             this.borrowerData = getBorrowersByData(this.borrowersFields.get(this.comboBoxFilterBy.getValue().value()), this.workCombox.getValue().value());
         } else {
             this.borrowerData = getBorrowersByData(this.borrowersFields.get(this.comboBoxFilterBy.getValue().value()), this.searchValue.getText());
         }
-        this.idColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("ID"));
-        this.fnameColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("firstName"));
-        this.lnameColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("lastName"));
-        this.workColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, String>("work"));
-        this.qtColumn.setCellValueFactory(new PropertyValueFactory<BorrowerData, Integer>("totalBorrowedMaterial"));
+        this.idColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
+        this.fnameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        this.lnameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        this.workColumn.setCellValueFactory(new PropertyValueFactory<>("work"));
+        this.qtColumn.setCellValueFactory(new PropertyValueFactory<>("totalBorrowedMaterial"));
         this.tableBorrowers.setItems(null);
         this.tableBorrowers.setItems(this.borrowerData);
     }
 
     @FXML
-    public void onFilterChanged(ActionEvent actionEvent) {
-        if (this.comboBoxFilterBy.getValue() != null && this.comboBoxFilterBy.getValue().value().equals(borrowersFilterBy.Work.value())) {
+    public void onFilterChanged() {
+        if (this.comboBoxFilterBy.getValue() != null && this.comboBoxFilterBy.getValue().value().equals(BorrowersFilter.Work.value())) {
             this.searchValue.setVisible(false);
             this.workCombox.setVisible(true);
         } else {
             this.searchValue.setVisible(true);
             this.workCombox.setVisible(false);
-            if (this.comboBoxFilterBy.getValue() != null && this.comboBoxFilterBy.getValue().value().equals(borrowersFilterBy.Tous.value())) {
+            if (this.comboBoxFilterBy.getValue() != null && this.comboBoxFilterBy.getValue().value().equals(BorrowersFilter.Tous.value())) {
                 this.searchValue.setText("");
             }
         }
-        if (this.matComboboxFilterBy.getValue() != null && this.matComboboxFilterBy.getValue().value().equals(materialsFilterBy.Type.value())) {
+        if (this.matComboboxFilterBy.getValue() != null && this.matComboboxFilterBy.getValue().value().equals(MaterialsFilter.Type.value())) {
             this.matSearchValue.setVisible(false);
             this.matTypeCombobox.setVisible(true);
         } else {
             this.matSearchValue.setVisible(true);
             this.matTypeCombobox.setVisible(false);
-            if (this.matComboboxFilterBy.getValue() != null && this.matComboboxFilterBy.getValue().value().equals(materialsFilterBy.Tous.value())) {
+            if (this.matComboboxFilterBy.getValue() != null && this.matComboboxFilterBy.getValue().value().equals(MaterialsFilter.Tous.value())) {
                 this.matSearchValue.setText("");
             }
         }
-        if (this.empMatComboboxFilterBy.getValue() != null && this.empMatComboboxFilterBy.getValue().value().equals(materialsFilterBy.Type.value())) {
+        if (this.empMatComboboxFilterBy.getValue() != null && this.empMatComboboxFilterBy.getValue().value().equals(MaterialsFilter.Type.value())) {
             this.empMatSearchValue.setVisible(false);
             this.empMatComboboxType.setVisible(true);
         } else {
             this.empMatSearchValue.setVisible(true);
             this.empMatComboboxType.setVisible(false);
-            if (this.empMatComboboxFilterBy.getValue() != null && this.empMatComboboxFilterBy.getValue().value().equals(materialsFilterBy.Tous.value())) {
+            if (this.empMatComboboxFilterBy.getValue() != null && this.empMatComboboxFilterBy.getValue().value().equals(MaterialsFilter.Tous.value())) {
                 this.empMatSearchValue.setText("");
             }
         }
     }
 
     @FXML
-    public void exit(ActionEvent actionEvent) throws Exception {
-        System.exit(0);
-    }
-
-    @FXML
-    public void addBorrower(ActionEvent actionEvent) {
-        String query = "INSERT INTO borrowers(ID,firstName,lastName,email,phoneNumber,work) VALUES (?,?,?,?,?,?)";
-
-        try {
-            Connection connection = DBConnection.getConnection();
+    public void addBorrower() throws SQLException {
+        Connection connection = DBConnection.getConnection();
+        if (connection != null) {
+            String query = "INSERT INTO borrowers(ID,firstName,lastName,email,phoneNumber,work) VALUES (?,?,?,?,?,?)";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
             if (this.textID.getText().equals("")) {
@@ -382,40 +472,34 @@ public class MainController implements Initializable {
             }
             if (i == 5) {
                 preparedStatement.execute();
-                this.comboBoxFilterBy.setValue(borrowersFilterBy.Tous);
+                this.comboBoxFilterBy.setValue(BorrowersFilter.Tous);
                 this.searchBtn.fire();
-                connection.close();
             }
-        } catch (SQLException e) {
-            this.textID.setEffect(errorShadow);
+            connection.close();
         }
     }
 
     @FXML
-    public void deleteBorrower(ActionEvent actionEvent) {
-        String query = "DELETE FROM borrowers WHERE ID = ?";
-
-        try {
-            Connection connection = DBConnection.getConnection();
+    public void deleteBorrower() throws SQLException {
+        Connection connection = DBConnection.getConnection();
+        if (connection != null) {
+            String query = "DELETE FROM borrowers WHERE ID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             if (!this.textID.getText().equals("")) {
                 preparedStatement.setString(1, this.textID.getText());
                 preparedStatement.execute();
                 this.searchBtn.fire();
-                connection.close();
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            connection.close();
         }
+
     }
 
     @FXML
-    public void updateBorrower(ActionEvent actionEvent) {
-        String query = "UPDATE borrowers SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?,work = ? WHERE ID = ?";
-
-        try {
-            Connection connection = DBConnection.getConnection();
+    public void updateBorrower() throws SQLException {
+        Connection connection = DBConnection.getConnection();
+        if (connection != null) {
+            String query = "UPDATE borrowers SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?,work = ? WHERE ID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             int i = 0;
             if (this.textID.getText().equals("")) {
@@ -457,168 +541,170 @@ public class MainController implements Initializable {
             if (i == 5) {
                 preparedStatement.execute();
                 this.searchBtn.fire();
-                connection.close();
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            connection.close();
         }
     }
 
-    public ObservableList<MaterialData> getBorrowedMaterial() {
+    private ObservableList<MaterialData> getBorrowedMaterial() {
         ObservableList<MaterialData> materialData = observableArrayList();
-        String query = "SELECT materialID,reference,quantity FROM emprunt WHERE borrowerID = ?";
-
         try {
             Connection connection = DBConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, this.textID.getText());
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                String query2 = "SELECT name,type FROM materials WHERE ID = ?";
-                PreparedStatement preparedStatement1 = connection.prepareStatement(query2);
-                preparedStatement1.setString(1, resultSet.getString(1));
-                ResultSet resultSet1 = preparedStatement1.executeQuery();
-                while (resultSet1.next()) {
-                    materialData.add(new MaterialData(resultSet.getString(1),
-                            resultSet1.getString(1),
-                            Integer.valueOf(resultSet.getString(3)),
-                            Integer.valueOf(resultSet.getString(3)),
-                            "-",
-                            resultSet.getString(2),
-                            resultSet1.getString(2)));
+            if (connection != null) {
+                String query = "SELECT materialID,reference,quantity FROM emprunt WHERE borrowerID = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, this.textID.getText());
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    String query2 = "SELECT name,type FROM materials WHERE ID = ?";
+                    PreparedStatement preparedStatement1 = connection.prepareStatement(query2);
+                    preparedStatement1.setString(1, resultSet.getString(1));
+                    ResultSet resultSet1 = preparedStatement1.executeQuery();
+                    while (resultSet1.next()) {
+                        materialData.add(new MaterialData(resultSet.getString(1),
+                                resultSet1.getString(1),
+                                Integer.valueOf(resultSet.getString(3)),
+                                Integer.valueOf(resultSet.getString(3)),
+                                "-",
+                                resultSet.getString(2),
+                                resultSet1.getString(2)));
 
+                    }
                 }
+                connection.close();
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.fillInStackTrace().getMessage());
         }
         return materialData;
     }
 
-    public ObservableList<BorrowerData> getBorrowersByData(String field, String value) {
-        ObservableList<BorrowerData> borrowerData = FXCollections.observableArrayList();
-        String query;
+    private ObservableList<BorrowerData> getBorrowersByData(String field, String value) {
+        ObservableList<BorrowerData> borrowerData = observableArrayList();
         try {
-            if (value.equals("")) {
-                query = "SELECT * FROM borrowers";
-            } else {
-                query = "SELECT * FROM borrowers WHERE " + field + " = '" + value + "'";
-            }
             Connection connection = DBConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                borrowerData.add(new BorrowerData(resultSet.getString(1),
-                        resultSet.getString(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
-                        resultSet.getString(5),
-                        resultSet.getString(6),
-                        resultSet.getInt(7),
-                        "-"));
+            if (connection != null) {
+                String query;
+                if (value.equals("")) {
+                    query = "SELECT * FROM borrowers";
+                } else {
+                    query = "SELECT * FROM borrowers WHERE " + field + " = '" + value + "'";
+                }
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    borrowerData.add(new BorrowerData(resultSet.getString(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getString(6),
+                            resultSet.getInt(7),
+                            "-"));
+                }
+                connection.close();
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.fillInStackTrace().getMessage());
         }
         return borrowerData;
     }
 
     @FXML
-    public void searchMaterials(ActionEvent actionEvent) {
-        if (this.matComboboxFilterBy.getValue() == null || this.matComboboxFilterBy.getValue().value().equals(materialsFilterBy.Tous.value())) {
+    public void searchMaterials() {
+        if (this.matComboboxFilterBy.getValue() == null || this.matComboboxFilterBy.getValue().value().equals(MaterialsFilter.Tous.value())) {
             this.materialData = getMaterialsByData("", "");
-        } else if (this.matComboboxFilterBy.getValue().value().equals(materialsFilterBy.Type.value()) && this.matTypeCombobox.getValue() != null) {
+        } else if (this.matComboboxFilterBy.getValue().value().equals(MaterialsFilter.Type.value()) && this.matTypeCombobox.getValue() != null) {
             this.materialData = getMaterialsByData(this.materialsFields.get(this.matComboboxFilterBy.getValue().value()), this.matTypeCombobox.getValue().value());
         } else {
             this.materialData = getMaterialsByData(this.materialsFields.get(this.matComboboxFilterBy.getValue().value()), this.matSearchValue.getText());
         }
-        this.materialIDColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("ID"));
-        this.materialNameColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("name"));
-        this.materialTypeColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("type"));
-        this.materialInitQtColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, Integer>("initQuantity"));
-        this.materialAvQtColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, Integer>("availableQuantity"));
+        this.materialIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
+        this.materialNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        this.materialTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        this.materialInitQtColumn.setCellValueFactory(new PropertyValueFactory<>("initQuantity"));
+        this.materialAvQtColumn.setCellValueFactory(new PropertyValueFactory<>("availableQuantity"));
         this.tableMaterials.setItems(null);
         this.tableMaterials.setItems(this.materialData);
     }
 
-    public ObservableList<MaterialData> getMaterialsByData(String field, String value) {
+    private ObservableList<MaterialData> getMaterialsByData(String field, String value) {
         ObservableList<MaterialData> materialData = FXCollections.observableArrayList();
-        String query;
         try {
-            if (value.equals("")) {
-                query = "SELECT * FROM materials";
-            } else {
-                query = "SELECT * FROM materials WHERE " + field + " = '" + value + "'";
-            }
             Connection connection = DBConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                materialData.add(new MaterialData(resultSet.getString(1),
-                        resultSet.getString(2),
-                        resultSet.getInt(3),
-                        resultSet.getInt(4),
-                        resultSet.getString(5),
-                        "-",
-                        resultSet.getString(6)));
+            if (connection != null) {
+                String query;
+                if (value.equals("")) {
+                    query = "SELECT * FROM materials";
+                } else {
+                    query = "SELECT * FROM materials WHERE " + field + " = '" + value + "'";
+                }
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    materialData.add(new MaterialData(resultSet.getString(1),
+                            resultSet.getString(2),
+                            resultSet.getInt(3),
+                            resultSet.getInt(4),
+                            resultSet.getString(5),
+                            "-",
+                            resultSet.getString(6)));
+                }
+                connection.close();
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.fillInStackTrace().getMessage());
         }
         return materialData;
     }
 
     @FXML
-    public void addMaterial(ActionEvent actionEvent) {
-        String query = "INSERT INTO materials(ID,name,initQuantity,availableQuantity,description,type) VALUES (?,?,?,?,?,?)";
-
+    public void addMaterial() {
         try {
             Connection connection = DBConnection.getConnection();
-            assert connection != null;
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            int i = 0;
-            if (this.textMatID.getText().equals("")) {
-                this.textMatID.setEffect(errorShadow);
-            } else {
-                this.textMatID.setEffect(null);
-                preparedStatement.setString(1, this.textMatID.getText());
-                i++;
-            }
-            if (this.textMatName.getText().equals("")) {
-                this.textMatName.setEffect(errorShadow);
-            } else {
-                this.textMatName.setEffect(null);
-                preparedStatement.setString(2, this.textMatName.getText());
-                i++;
-            }
-            this.textMatQt.setEffect(null);
-            preparedStatement.setInt(3, Integer.valueOf(this.textMatQt.getValue()));
-            preparedStatement.setInt(4, Integer.valueOf(this.textMatQt.getValue()));
-            preparedStatement.setString(5, this.textMatDescription.getText());
-            if (this.textMatType.getValue() == null) {
-                this.textMatType.setEffect(errorShadow);
-            } else {
-                this.textMatType.setEffect(null);
-                preparedStatement.setString(6, this.textMatType.getValue().value());
-                i++;
-            }
-            if (i == 3) {
-                preparedStatement.execute();
-                this.matComboboxFilterBy.setValue(materialsFilterBy.Tous);
-                this.matSearchBtn.fire();
+            if (connection != null) {
+                String query = "INSERT INTO materials(ID,name,initQuantity,availableQuantity,description,type) VALUES (?,?,?,?,?,?)";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                int i = 0;
+                if (this.textMatID.getText().equals("")) {
+                    this.textMatID.setEffect(errorShadow);
+                } else {
+                    this.textMatID.setEffect(null);
+                    preparedStatement.setString(1, this.textMatID.getText());
+                    i++;
+                }
+                if (this.textMatName.getText().equals("")) {
+                    this.textMatName.setEffect(errorShadow);
+                } else {
+                    this.textMatName.setEffect(null);
+                    preparedStatement.setString(2, this.textMatName.getText());
+                    i++;
+                }
+                this.textMatQt.setEffect(null);
+                preparedStatement.setInt(3, this.textMatQt.getValue());
+                preparedStatement.setInt(4, this.textMatQt.getValue());
+                preparedStatement.setString(5, this.textMatDescription.getText());
+                if (this.textMatType.getValue() == null) {
+                    this.textMatType.setEffect(errorShadow);
+                } else {
+                    this.textMatType.setEffect(null);
+                    preparedStatement.setString(6, this.textMatType.getValue().value());
+                    i++;
+                }
+                if (i == 3) {
+                    preparedStatement.execute();
+                    this.matComboboxFilterBy.setValue(MaterialsFilter.Tous);
+                    this.matSearchBtn.fire();
+                }
                 connection.close();
             }
         } catch (SQLException e) {
-            this.textMatID.setEffect(errorShadow);
+            System.out.println(e.fillInStackTrace().getMessage());
         }
     }
 
     @FXML
-    public void updateMaterial(ActionEvent actionEvent) throws SQLException {
+    public void updateMaterial() throws SQLException {
         Connection connection = DBConnection.getConnection();
         if (connection != null) {
             String query = "SELECT initQuantity,availableQuantity FROM materials WHERE ID = ?";
@@ -659,14 +745,14 @@ public class MainController implements Initializable {
                 if (i == 3) {
                     preparedStatement.execute();
                     this.matSearchBtn.fire();
-                    connection.close();
                 }
             }
+            connection.close();
         }
     }
 
     @FXML
-    public void deleteMaterial(ActionEvent actionEvent) throws SQLException {
+    public void deleteMaterial() throws SQLException {
         Connection connection = DBConnection.getConnection();
         if (connection != null) {
             String query = "DELETE FROM materials WHERE ID = ?";
@@ -675,64 +761,46 @@ public class MainController implements Initializable {
                 preparedStatement.setString(1, this.textMatID.getText());
                 preparedStatement.execute();
                 this.matSearchBtn.fire();
-                connection.close();
             }
+            connection.close();
         }
     }
 
-    public ObservableList<BorrowerData> getMaterialBorrowers() {
+    private ObservableList<BorrowerData> getMaterialBorrowers() {
         ObservableList<BorrowerData> borrowerData = observableArrayList();
-        String query = "SELECT borrowerID,reference,quantity FROM emprunt WHERE materialID = ?";
-
         try {
             Connection connection = DBConnection.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, this.textMatID.getText());
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                String query2 = "SELECT firstName,lastName,work FROM borrowers WHERE ID = ?";
-                PreparedStatement preparedStatement1 = connection.prepareStatement(query2);
-                preparedStatement1.setString(1, resultSet.getString(1));
-                ResultSet resultSet1 = preparedStatement1.executeQuery();
-                while (resultSet1.next()) {
-                    borrowerData.add(new BorrowerData(resultSet.getString(1),
-                            resultSet1.getString(1),
-                            resultSet1.getString(2),
-                            "-@-",
-                            "-",
-                            resultSet1.getString(3),
-                            resultSet.getInt(3),
-                            resultSet.getString(2)));
-
+            if (connection != null) {
+                String query = "SELECT borrowerID,reference,quantity FROM emprunt WHERE materialID = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, this.textMatID.getText());
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    String query2 = "SELECT firstName,lastName,work FROM borrowers WHERE ID = ?";
+                    PreparedStatement preparedStatement1 = connection.prepareStatement(query2);
+                    preparedStatement1.setString(1, resultSet.getString(1));
+                    ResultSet resultSet1 = preparedStatement1.executeQuery();
+                    while (resultSet1.next()) {
+                        borrowerData.add(new BorrowerData(resultSet.getString(1),
+                                resultSet1.getString(1),
+                                resultSet1.getString(2),
+                                "-@-",
+                                "-",
+                                resultSet1.getString(3),
+                                resultSet.getInt(3),
+                                resultSet.getString(2)));
+                    }
                 }
+                connection.close();
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.fillInStackTrace().getMessage());
         }
         return borrowerData;
     }
 
     @FXML
-    public Label empLabelID;
-
-    @FXML
-    public Label empLabelFirstName;
-
-    @FXML
-    public Label empLabelEmail;
-
-    @FXML
-    public Label empLabelWork;
-
-    @FXML
-    public Label empLabelLastName;
-
-    @FXML
-    public Label empLabelTel;
-
-    @FXML
-    public void switchToEmprunt(ActionEvent actionEvent) throws SQLException {
+    public void switchToEmprunt() throws SQLException {
         Connection connection = DBConnection.getConnection();
         this.deletedEmpruntData = observableArrayList();
         this.empruntData = observableArrayList();
@@ -774,11 +842,12 @@ public class MainController implements Initializable {
                             resultSet2.getString(6));
                     this.empruntedMaterial.put(materialData.getID(), materialData);
                 }
-                this.empruntNameColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("matName"));
-                this.empruntDEColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("dateEmprunt"));
-                this.empruntDRColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("dateReturn"));
-                this.empruntRefColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("reference"));
-                this.empruntQtColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, Integer>("quantity"));
+                this.empruntNameColumn.setCellValueFactory(new PropertyValueFactory<>("matName"));
+                this.empruntDEColumn.setCellValueFactory(new PropertyValueFactory<>("dateEmprunt"));
+                this.empruntDRColumn.setCellValueFactory(new PropertyValueFactory<>("dateReturn"));
+                this.empruntRefColumn.setCellValueFactory(new PropertyValueFactory<>("reference"));
+                this.empruntQtColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+                this.empruntTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
                 this.emprunTable.setItems(null);
                 this.emprunTable.setItems(this.empruntData);
                 this.tabPane.getSelectionModel().select(ongletEmprunt);
@@ -788,85 +857,42 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    public ComboBox<materialTypes> empMatComboboxType;
-
-    @FXML
-    public TextField empMatSearchValue;
-
-    @FXML
-    public ComboBox<materialsFilterBy> empMatComboboxFilterBy;
-
-    @FXML
-    public Button empMatSearchBtn;
-
-    @FXML
-    public TableView<MaterialData> tabEmpMat;
-
-    @FXML
-    public TableColumn<MaterialData, String> empMatIDColumn;
-
-    @FXML
-    public TableColumn<MaterialData, String> empMatNameColumn;
-
-    @FXML
-    public TableColumn<MaterialData, String> empMatTypeColumn;
-
-    @FXML
-    public TableColumn<MaterialData, Integer> empMatQtColumn;
-
-    @FXML
-    public void searchEmpMaterials(ActionEvent actionEvent) {
-        if (this.empMatComboboxFilterBy.getValue() == null || this.empMatComboboxFilterBy.getValue().value().equals(materialsFilterBy.Tous.value())) {
+    public void searchEmpMaterials() {
+        if (this.empMatComboboxFilterBy.getValue() == null || this.empMatComboboxFilterBy.getValue().value().equals(MaterialsFilter.Tous.value())) {
             this.materialData = getMaterialsByData("", "");
-        } else if (this.empMatComboboxFilterBy.getValue().value().equals(materialsFilterBy.Type.value()) && this.empMatComboboxType.getValue() != null) {
+        } else if (this.empMatComboboxFilterBy.getValue().value().equals(MaterialsFilter.Type.value()) && this.empMatComboboxType.getValue() != null) {
             this.materialData = getMaterialsByData(this.materialsFields.get(this.empMatComboboxFilterBy.getValue().value()), this.empMatComboboxType.getValue().value());
         } else {
             this.materialData = getMaterialsByData(this.materialsFields.get(this.empMatComboboxFilterBy.getValue().value()), this.empMatSearchValue.getText());
         }
-        this.empMatIDColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("ID"));
-        this.empMatNameColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("name"));
-        this.empMatTypeColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, String>("type"));
-        this.empMatQtColumn.setCellValueFactory(new PropertyValueFactory<MaterialData, Integer>("availableQuantity"));
+        this.empMatIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
+        this.empMatNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        this.empMatTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        this.empMatQtColumn.setCellValueFactory(new PropertyValueFactory<>("availableQuantity"));
         this.tabEmpMat.setItems(null);
         this.tabEmpMat.setItems(this.materialData);
     }
 
     @FXML
-    public TableView<EmpruntData> emprunTable;
-
-    @FXML
-    public TableColumn<EmpruntData, String> empruntNameColumn;
-
-    @FXML
-    public TableColumn<EmpruntData, String> empruntDEColumn;
-
-    @FXML
-    public TableColumn<EmpruntData, String> empruntDRColumn;
-
-    @FXML
-    public TableColumn<EmpruntData, String> empruntRefColumn;
-
-    @FXML
-    public TableColumn<EmpruntData, Integer> empruntQtColumn;
-    public int initBorrowedQt;
-
-    @FXML
-    public void switchToDoEmprunt(ActionEvent actionEvent) throws IOException {
+    public void switchToDoEmprunt() {
         MaterialData materialData = this.tabEmpMat.getSelectionModel().getSelectedItem();
         initBorrowedQt = 0;
-        if (materialData != null) {
+        if (materialData != null && materialData.getAvailableQuantity() > 0) {
             EmpruntData empruntData = getEmpruntData(materialData);
             if (empruntData != null) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, "Voulez-vous modifier cet emprunt ?", ButtonType.YES, ButtonType.NO);
+                ButtonType ouiBtn = new ButtonType("OUI");
+                ButtonType nonBtn = new ButtonType("NON");
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Voulez-vous modifier cet emprunt ?", ouiBtn, nonBtn);
                 alert.showAndWait();
-                if (alert.getResult() == ButtonType.YES) {
+                if (alert.getResult() == ouiBtn) {
                     this.textEmpMatID.setText(materialData.getID());
                     this.textEmpMatName.setText(materialData.getName());
                     this.textEmpMatQt.setText(materialData.getAvailableQuantity() + "");
                     this.textEmpMatType.setText(materialData.getType());
+                    this.textTypeToEmprunt.getSelectionModel().select(EmpruntTypes.fromValue(empruntData.getType()));
                     this.textDEToEmprunt.setValue(LocalDate.parse(empruntData.getDateEmprunt()));
                     this.textDRToEmprunt.setValue(LocalDate.parse(empruntData.getDateReturn()));
-                    this.textQtToEmprunt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, materialData.getAvailableQuantity()));
+                    this.textQtToEmprunt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, empruntData.getQuantity() + materialData.getAvailableQuantity()));
                     this.textQtToEmprunt.increment(empruntData.getQuantity() - 1);
                     initBorrowedQt = empruntData.getQuantity();
                     this.empruntTab.setDisable(false);
@@ -881,91 +907,75 @@ public class MainController implements Initializable {
                 this.textDEToEmprunt.setValue(LocalDate.now());
                 this.textDRToEmprunt.setValue(LocalDate.now().plusMonths(1));
                 this.textQtToEmprunt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, materialData.getAvailableQuantity()));
+                this.textTypeToEmprunt.getSelectionModel().select(null);
                 this.empruntTab.setDisable(false);
                 this.tabPane.getSelectionModel().select(empruntTab);
             }
+        } else if (materialData != null && materialData.getAvailableQuantity() == 0) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Matérièl non disponible pour le moment !", ButtonType.OK);
+            alert.showAndWait();
         }
     }
 
     @FXML
-    public Label textEmpMatID;
-
-    @FXML
-    public Label textEmpMatQt;
-
-    @FXML
-    public Label textEmpMatName;
-
-    @FXML
-    public Label textEmpMatType;
-
-    @FXML
-    public DatePicker textDEToEmprunt;
-
-    @FXML
-    public DatePicker textDRToEmprunt;
-
-    @FXML
-    public Spinner<Integer> textQtToEmprunt;
-
-    @FXML
-    public TextField textRefToEmprunt;
-
-    @FXML
-    public Button cancelEmpBtn;
-
-
-    @FXML
-    public void okEmprunt(ActionEvent actionEvent) throws SQLException, IOException {
+    public void okEmprunt() {
         MaterialData materialData = this.tabEmpMat.getSelectionModel().getSelectedItem();
-        BorrowerData borrowerData = this.tableBorrowers.getSelectionModel().getSelectedItem();
-        String materialID = null;
-        if (materialData != null) {
-            EmpruntData empruntData = getEmpruntData(materialData);
-            if (empruntData == null) {
-                this.empruntData.add(new EmpruntData(-1,
-                        this.empLabelID.getText(),
-                        materialData.getID(),
-                        materialData.getName(),
-                        this.textDEToEmprunt.getValue().toString(),
-                        this.textDRToEmprunt.getValue().toString(),
-                        materialData.getType(),
-                        this.textRefToEmprunt.getText(),
-                        this.textQtToEmprunt.getValue()));
-            } else {
-                empruntData.setDateEmprunt(this.textDEToEmprunt.getValue().toString());
-                empruntData.setDateReturn(this.textDRToEmprunt.getValue().toString());
-                empruntData.setReference(this.textRefToEmprunt.getText());
-                empruntData.setQuantity(this.textQtToEmprunt.getValue());
-            }
-            materialID = materialData.getID();
+        if (this.textTypeToEmprunt.getValue() == null) {
+            this.textTypeToEmprunt.setEffect(this.errorShadow);
         } else {
-            this.emprunTable.getSelectionModel().getSelectedItem().setDateEmprunt(this.textDEToEmprunt.getValue().toString());
-            this.emprunTable.getSelectionModel().getSelectedItem().setDateReturn(this.textDRToEmprunt.getValue().toString());
-            this.emprunTable.getSelectionModel().getSelectedItem().setReference(this.textRefToEmprunt.getText());
-            this.emprunTable.getSelectionModel().getSelectedItem().setQuantity(this.textQtToEmprunt.getValue());
+            String materialID;
+            this.textTypeToEmprunt.setEffect(null);
+            if (materialData != null) {
+                EmpruntData empruntData = getEmpruntData(materialData);
+                materialID = materialData.getID();
+                if (empruntData == null) {
+                    this.empruntData.add(new EmpruntData(-1,
+                            this.empLabelID.getText(),
+                            materialData.getID(),
+                            materialData.getName(),
+                            this.textDEToEmprunt.getValue().toString(),
+                            this.textDRToEmprunt.getValue().toString(),
+                            this.textTypeToEmprunt.getValue().toString(),
+                            this.textRefToEmprunt.getText(),
+                            this.textQtToEmprunt.getValue()));
+                } else {
+                    empruntData.setDateEmprunt(this.textDEToEmprunt.getValue().toString());
+                    empruntData.setDateReturn(this.textDRToEmprunt.getValue().toString());
+                    empruntData.setReference(this.textRefToEmprunt.getText());
+                    empruntData.setQuantity(this.textQtToEmprunt.getValue());
+                    empruntData.setType(this.textTypeToEmprunt.getValue().toString());
+                }
+            } else {
+                materialID = this.emprunTable.getSelectionModel().getSelectedItem().getMaterialID();
+                this.emprunTable.getSelectionModel().getSelectedItem().setDateEmprunt(this.textDEToEmprunt.getValue().toString());
+                this.emprunTable.getSelectionModel().getSelectedItem().setDateReturn(this.textDRToEmprunt.getValue().toString());
+                this.emprunTable.getSelectionModel().getSelectedItem().setReference(this.textRefToEmprunt.getText());
+                this.emprunTable.getSelectionModel().getSelectedItem().setQuantity(this.textQtToEmprunt.getValue());
+                this.emprunTable.getSelectionModel().getSelectedItem().setType(this.textTypeToEmprunt.getValue().toString());
+            }
+            this.empruntNameColumn.setCellValueFactory(new PropertyValueFactory<>("matName"));
+            this.empruntDEColumn.setCellValueFactory(new PropertyValueFactory<>("dateEmprunt"));
+            this.empruntDRColumn.setCellValueFactory(new PropertyValueFactory<>("dateReturn"));
+            this.empruntRefColumn.setCellValueFactory(new PropertyValueFactory<>("reference"));
+            this.empruntQtColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            this.empruntTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+            if (materialID != null) {
+                this.empruntedMaterial.get(materialID).setAvailableQuantity(this.empruntedMaterial.get(materialID).getAvailableQuantity() + initBorrowedQt - this.textQtToEmprunt.getValue());
+            }
+            this.emprunTable.setItems(null);
+            this.emprunTable.setItems(this.empruntData);
+            this.tabPane.getSelectionModel().select(ongletEmprunt);
+            this.empruntTab.setDisable(true);
         }
-        this.empruntNameColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("matName"));
-        this.empruntDEColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("dateEmprunt"));
-        this.empruntDRColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("dateReturn"));
-        this.empruntRefColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, String>("reference"));
-        this.empruntQtColumn.setCellValueFactory(new PropertyValueFactory<EmpruntData, Integer>("quantity"));
-        if (materialID != null) {
-            this.empruntedMaterial.get(materialID).setAvailableQuantity(this.empruntedMaterial.get(materialID).getAvailableQuantity() + initBorrowedQt - this.textQtToEmprunt.getValue());
-        }
-        this.emprunTable.setItems(null);
-        this.emprunTable.setItems(this.empruntData);
-        this.tabPane.getSelectionModel().select(ongletEmprunt);
-        this.empruntTab.setDisable(true);
     }
 
     @FXML
-    public void cancelEmprunt(ActionEvent actionEvent) {
+    public void cancelEmprunt() {
         this.tabPane.getSelectionModel().select(ongletEmprunt);
         this.empruntTab.setDisable(true);
     }
 
-    public EmpruntData getEmpruntData(MaterialData materialData) {
+    private EmpruntData getEmpruntData(MaterialData materialData) {
         for (EmpruntData empruntData : this.empruntData) {
             if (empruntData.getMaterialID().equals(materialData.getID())) {
                 return empruntData;
@@ -975,106 +985,105 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    public void doEmprunts(ActionEvent actionEvent) throws SQLException {
-        Connection connection = DBConnection.getConnection();
-        String updateQuery, insertQuery, deleteQuery;
-        PreparedStatement updateStatement, insertStatement, deleteStatement;
-        if (connection != null) {
-            BorrowerData borrowerData = this.tableBorrowers.getSelectionModel().getSelectedItem();
-            int i = 0;
-            for (EmpruntData empruntData : this.deletedEmpruntData) {
-                deleteQuery = "DELETE FROM emprunt WHERE borrowerID = ? AND materialID =?";
-                deleteStatement = connection.prepareStatement(deleteQuery);
-                deleteStatement.setString(1, empruntData.getBorrowerID());
-                deleteStatement.setString(2, empruntData.getMaterialID());
-                deleteStatement.execute();
-                updateQuery = "UPDATE materials SET availableQuantity = ? WHERE ID = ?";
-                updateStatement = connection.prepareStatement(updateQuery);
-                this.empruntedMaterial.get(empruntData.getMaterialID()).setAvailableQuantity(this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity() + empruntData.getQuantity());
-                updateStatement.setInt(1,
-                        this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity());
-                updateStatement.setString(2, empruntData.getMaterialID());
-                updateStatement.execute();
-            }
-
-            for (EmpruntData empruntData : this.empruntData) {
-                i += empruntData.getQuantity();
-                MaterialData materialData = this.empruntedMaterial.get(empruntData.getMaterialID());
-                String query = "SELECT * FROM emprunt WHERE borrowerID = ? AND materialID = ?";
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
-                preparedStatement.setString(1, empruntData.getBorrowerID());
-                preparedStatement.setString(2, empruntData.getMaterialID());
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    updateQuery = "UPDATE emprunt SET dateReturn = ?, reference = ?, quantity = ? WHERE ID = ?";
-                    updateStatement = connection.prepareStatement(updateQuery);
-                    updateStatement.setString(1, empruntData.getDateReturn());
-                    updateStatement.setString(2, empruntData.getReference());
-                    updateStatement.setInt(3, empruntData.getQuantity());
-                    updateStatement.setInt(4, resultSet.getInt(1));
-                    updateStatement.execute();
-
+    public void doEmprunts() {
+        try {
+            Connection connection = DBConnection.getConnection();
+            String updateQuery, insertQuery, deleteQuery;
+            PreparedStatement updateStatement, insertStatement, deleteStatement;
+            if (connection != null) {
+                BorrowerData borrowerData = this.tableBorrowers.getSelectionModel().getSelectedItem();
+                int i = 0;
+                for (EmpruntData empruntData : this.deletedEmpruntData) {
+                    deleteQuery = "DELETE FROM emprunt WHERE borrowerID = ? AND materialID =?";
+                    deleteStatement = connection.prepareStatement(deleteQuery);
+                    deleteStatement.setString(1, empruntData.getBorrowerID());
+                    deleteStatement.setString(2, empruntData.getMaterialID());
+                    deleteStatement.execute();
                     updateQuery = "UPDATE materials SET availableQuantity = ? WHERE ID = ?";
                     updateStatement = connection.prepareStatement(updateQuery);
-                    updateStatement.setInt(1, materialData.getAvailableQuantity());
-                    updateStatement.setString(2, materialData.getID());
+                    this.empruntedMaterial.get(empruntData.getMaterialID()).setAvailableQuantity(this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity() + empruntData.getQuantity());
+                    updateStatement.setInt(1,
+                            this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity());
+                    updateStatement.setString(2, empruntData.getMaterialID());
                     updateStatement.execute();
-                } else {
-                    insertQuery = "INSERT INTO emprunt (borrowerID,materialID, matName,dateEmprunt,dateReturn,type,reference,quantity)" +
-                            "VALUES (?,?,?,?,?,?,?,?)";
-                    insertStatement = connection.prepareStatement(insertQuery);
-                    insertStatement.setString(1, borrowerData.getID());
-                    insertStatement.setString(2, materialData.getID());
-                    insertStatement.setString(3, materialData.getName());
-                    insertStatement.setString(4, empruntData.getDateEmprunt());
-                    insertStatement.setString(5, empruntData.getDateReturn());
-                    insertStatement.setString(6, materialData.getType());
-                    insertStatement.setString(7, empruntData.getReference());
-                    insertStatement.setInt(8, empruntData.getQuantity());
-                    insertStatement.execute();
-
-                    insertQuery = "UPDATE materials SET availableQuantity = ? WHERE ID = ?";
-                    insertStatement = connection.prepareStatement(insertQuery);
-                    insertStatement.setInt(1, materialData.getAvailableQuantity());
-                    insertStatement.setString(2, materialData.getID());
-                    insertStatement.execute();
                 }
+                for (EmpruntData empruntData : this.empruntData) {
+                    i += empruntData.getQuantity();
+                    MaterialData materialData = this.empruntedMaterial.get(empruntData.getMaterialID());
+                    String query = "SELECT * FROM emprunt WHERE borrowerID = ? AND materialID = ?";
+                    PreparedStatement preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setString(1, empruntData.getBorrowerID());
+                    preparedStatement.setString(2, empruntData.getMaterialID());
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    if (resultSet.next()) {
+                        updateQuery = "UPDATE emprunt SET dateReturn = ?, reference = ?, quantity = ?, type = ? WHERE ID = ?";
+                        updateStatement = connection.prepareStatement(updateQuery);
+                        updateStatement.setString(1, empruntData.getDateReturn());
+                        updateStatement.setString(2, empruntData.getReference());
+                        updateStatement.setInt(3, empruntData.getQuantity());
+                        updateStatement.setString(4, empruntData.getType());
+                        updateStatement.setInt(5, resultSet.getInt(1));
+                        updateStatement.execute();
+                        updateQuery = "UPDATE materials SET availableQuantity = ? WHERE ID = ?";
+                        updateStatement = connection.prepareStatement(updateQuery);
+                        updateStatement.setInt(1, materialData.getAvailableQuantity());
+                        updateStatement.setString(2, materialData.getID());
+                        updateStatement.execute();
+                    } else {
+                        insertQuery = "INSERT INTO emprunt (borrowerID,materialID, matName,dateEmprunt,dateReturn,type,reference,quantity)" +
+                                "VALUES (?,?,?,?,?,?,?,?)";
+                        insertStatement = connection.prepareStatement(insertQuery);
+                        insertStatement.setString(1, borrowerData.getID());
+                        insertStatement.setString(2, materialData.getID());
+                        insertStatement.setString(3, materialData.getName());
+                        insertStatement.setString(4, empruntData.getDateEmprunt());
+                        insertStatement.setString(5, empruntData.getDateReturn());
+                        insertStatement.setString(6, empruntData.getType());
+                        insertStatement.setString(7, empruntData.getReference());
+                        insertStatement.setInt(8, empruntData.getQuantity());
+                        insertStatement.execute();
+                        insertQuery = "UPDATE materials SET availableQuantity = ? WHERE ID = ?";
+                        insertStatement = connection.prepareStatement(insertQuery);
+                        insertStatement.setInt(1, materialData.getAvailableQuantity());
+                        insertStatement.setString(2, materialData.getID());
+                        insertStatement.execute();
+                    }
+                }
+                updateQuery = "UPDATE borrowers SET totalBorrowedMaterial = ? WHERE ID = ?";
+                updateStatement = connection.prepareStatement(updateQuery);
+                updateStatement.setInt(1, i);
+                borrowerData.setTotalBorrowedMaterial(i);
+                updateStatement.setString(2, borrowerData.getID());
+                updateStatement.execute();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Emprunt enregistré avec succes !", ButtonType.OK);
+                alert.show();
+                this.searchBtn.fire();
+                this.matSearchBtn.fire();
+                this.empMatSearchBtn.fire();
+                this.tableBorrowers.getSelectionModel().select(borrowerData);
+                this.switchToEmpruntBtn.fire();
+                connection.close();
             }
-
-            updateQuery = "UPDATE borrowers SET totalBorrowedMaterial = ? WHERE ID = ?";
-            updateStatement = connection.prepareStatement(updateQuery);
-            updateStatement.setInt(1, i);
-            borrowerData.setTotalBorrowedMaterial(i);
-            updateStatement.setString(2, borrowerData.getID());
-            updateStatement.execute();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Emprunt enregistré avec succes !", ButtonType.OK);
-            alert.show();
-            this.searchBtn.fire();
-            this.matSearchBtn.fire();
-            this.empMatSearchBtn.fire();
-            this.tableBorrowers.getSelectionModel().select(borrowerData);
-            this.switchToEmpruntBtn.fire();
-            connection.close();
+        } catch (SQLException e) {
+            System.out.println(e.fillInStackTrace().getMessage());
         }
 
     }
 
     @FXML
-    public Button switchToEmpruntBtn;
-
-    @FXML
-    public void cancelEmprunts(ActionEvent actionEvent) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Voulez-vous annuler l'emprunt ?", ButtonType.YES, ButtonType.NO);
+    public void cancelEmprunts() {
+        ButtonType ouiBtn = new ButtonType("OUI");
+        ButtonType nonBtn = new ButtonType("NON");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Voulez-vous annuler l'emprunt ?", ouiBtn, nonBtn);
         alert.showAndWait();
-        if (alert.getResult() == ButtonType.YES) {
-            this.empruntedMaterial = observableHashMap();
-            this.empruntData = observableArrayList();
-            this.emprunTable.setItems(null);
+        if (alert.getResult() == ouiBtn) {
+            this.switchToEmpruntBtn.fire();
+            this.empMatSearchBtn.fire();
         }
     }
 
     @FXML
-    public void deleteEmprunt(ActionEvent actionEvent) {
+    public void deleteEmprunt() {
         EmpruntData empruntData = this.emprunTable.getSelectionModel().getSelectedItem();
         if (empruntData != null) {
             ButtonType editBtn = new ButtonType("Modifier");
@@ -1090,9 +1099,10 @@ public class MainController implements Initializable {
                 this.textEmpMatType.setText(this.empruntedMaterial.get(empruntData.getMaterialID()).getType());
                 this.textDEToEmprunt.setValue(LocalDate.parse(empruntData.getDateEmprunt()));
                 this.textDRToEmprunt.setValue(LocalDate.parse(empruntData.getDateReturn()));
-                this.textQtToEmprunt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity()));
-                initBorrowedQt = empruntData.getQuantity();
+                this.textQtToEmprunt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, this.empruntedMaterial.get(empruntData.getMaterialID()).getAvailableQuantity() + empruntData.getQuantity()));
                 this.textQtToEmprunt.increment(empruntData.getQuantity() - 1);
+                this.textTypeToEmprunt.getSelectionModel().select(EmpruntTypes.fromValue(empruntData.getType()));
+                initBorrowedQt = empruntData.getQuantity();
                 this.empruntTab.setDisable(false);
                 this.tabPane.getSelectionModel().select(empruntTab);
             } else if (alert.getResult() == deleteBtn) {

@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 public class LoginApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent parent = (Parent) FXMLLoader.load(getClass().getResource("login.fxml"));
+        Parent parent = FXMLLoader.load(getClass().getResource("login.fxml"));
         Scene scene = new Scene(parent);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);

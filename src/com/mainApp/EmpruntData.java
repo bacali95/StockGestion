@@ -16,7 +16,7 @@ public class EmpruntData {
     private final StringProperty reference;
     private final IntegerProperty quantity;
 
-    public EmpruntData(Integer ID, String borrowerID, String materialID,String matName, String dateEmprunt, String dateReturn, String type, String reference, Integer quantity) {
+    EmpruntData(Integer ID, String borrowerID, String materialID, String matName, String dateEmprunt, String dateReturn, String type, String reference, Integer quantity) {
         this.ID = new SimpleIntegerProperty(ID);
         this.borrowerID = new SimpleStringProperty(borrowerID);
         this.materialID = new SimpleStringProperty(materialID);
@@ -134,20 +134,5 @@ public class EmpruntData {
 
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
-    }
-}
-
-enum empruntTypes {
-    PFA, PFE, PS, CLUB, PP, TP;
-
-    private empruntTypes() {
-    }
-
-    public String value() {
-        return name();
-    }
-
-    public static empruntTypes fromValue(String value) {
-        return valueOf(value);
     }
 }

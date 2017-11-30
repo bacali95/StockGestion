@@ -8,9 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class LoginModel {
-    Connection connection;
+    private Connection connection;
 
-    public LoginModel() {
+    LoginModel() {
         try {
             this.connection = DBConnection.getConnection();
         } catch (SQLException e) {
@@ -25,24 +25,21 @@ public class LoginModel {
         return this.connection != null;
     }
 
-    public boolean isLogin(String username, String password) throws Exception {
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        String query = "SELECT * FROM admins WHERE username = ? and password = ?";
+    public boolean isLogin(String username, String password) {
+        String query = "SELECT * FROM admins WHERE username = ? AND password = ?";
         try {
-            preparedStatement = this.connection.prepareStatement(query);
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, password);
-            resultSet = preparedStatement.executeQuery();
-            return resultSet.next();
+            if (this.connection != null) {
+                PreparedStatement preparedStatement = this.connection.prepareStatement(query);
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, password);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                connection.close();
+                return resultSet.next();
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.fillInStackTrace().getMessage());
             return false;
-        } finally {
-            preparedStatement.close();
-            resultSet.close();
-
         }
-
+        return false;
     }
 }

@@ -1,6 +1,9 @@
 package com.mainApp;
 
-import javafx.beans.property.*;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class BorrowerData {
 
@@ -13,7 +16,7 @@ public class BorrowerData {
     private final IntegerProperty totalBorrowedMaterial;
     private final StringProperty reference;
 
-    public BorrowerData(String ID, String firstName, String lastName, String email, String phoneNumber, String work, Integer totalBorrowedMaterial, String reference) {
+    BorrowerData(String ID, String firstName, String lastName, String email, String phoneNumber, String work, Integer totalBorrowedMaterial, String reference) {
         this.ID = new SimpleStringProperty(ID);
         this.firstName = new SimpleStringProperty(firstName);
         this.lastName = new SimpleStringProperty(lastName);
@@ -121,32 +124,3 @@ public class BorrowerData {
     }
 }
 
-enum job {
-    Étudiant, Enseignant;
-
-    private job() {
-    }
-
-    public String value() {
-        return name();
-    }
-
-    public static job fromValue(String value) {
-        return valueOf(value);
-    }
-}
-
-enum borrowersFilterBy {
-    Tous, Identifiant, Nom, Prénom, Email, Téléphone, Work;
-
-    private borrowersFilterBy() {
-    }
-
-    public String value() {
-        return name();
-    }
-
-    public static borrowersFilterBy fromValue(String value) {
-        return valueOf(value);
-    }
-}

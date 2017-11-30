@@ -1,15 +1,8 @@
 package com.DBUtils;
 
-import com.mainApp.BorrowData;
-import com.mainApp.BorrowerData;
-import javafx.beans.property.SimpleMapProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DBConnection {
     private static final String SQLiteCONN = "jdbc:sqlite:stockgestion.sqlite";

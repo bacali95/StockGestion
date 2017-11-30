@@ -1,6 +1,9 @@
 package com.mainApp;
 
-import javafx.beans.property.*;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class MaterialData {
 
@@ -12,7 +15,7 @@ public class MaterialData {
     private final StringProperty reference;
     private final StringProperty type;
 
-    public MaterialData(String ID, String name, Integer initQuantity,Integer availableQuantity, String description, String reference, String type) {
+    MaterialData(String ID, String name, Integer initQuantity, Integer availableQuantity, String description, String reference, String type) {
         this.ID = new SimpleStringProperty(ID);
         this.name = new SimpleStringProperty(name);
         this.initQuantity = new SimpleIntegerProperty(initQuantity);
@@ -104,35 +107,5 @@ public class MaterialData {
 
     public void setType(String type) {
         this.type.set(type);
-    }
-}
-
-enum materialTypes {
-    Composant, Matériel;
-
-    private materialTypes() {
-    }
-
-    public String value() {
-        return name();
-    }
-
-    public static materialTypes fromValue(String value) {
-        return valueOf(value);
-    }
-}
-
-enum materialsFilterBy {
-    Tous, Identifiant, Nom, Type;
-
-    private materialsFilterBy () {
-    }
-
-    public String value() {
-        return name();
-    }
-
-    public static materialsFilterBy fromValue(String value) {
-        return valueOf(value);
     }
 }
