@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="stockgestion.sqlite">
+  <database-model serializer="dbm" rdbms="SQLITE" format-version="4.7">
+    <root id="1"/>
+    <schema id="2" parent="1" name="main">
+      <Current>1</Current>
+      <Visible>1</Visible>
+    </schema>
+    <collation id="3" parent="1" name="BINARY"/>
+    <collation id="4" parent="1" name="NOCASE"/>
+    <collation id="5" parent="1" name="RTRIM"/>
+    <table id="6" parent="2" name="admins"/>
+    <table id="7" parent="2" name="borrowers"/>
+    <table id="8" parent="2" name="emprunt"/>
+    <table id="9" parent="2" name="materials"/>
+    <table id="10" parent="2" name="sqlite_master">
+      <System>1</System>
+    </table>
+    <table id="11" parent="2" name="sqlite_sequence">
+      <System>1</System>
+    </table>
+    <column id="12" parent="6" name="username">
+      <Position>1</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+    </column>
+    <column id="13" parent="6" name="firstName">
+      <Position>2</Position>
+      <DataType>VARCHAR(40)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="14" parent="6" name="lastName">
+      <Position>3</Position>
+      <DataType>VARCHAR(40)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="15" parent="6" name="password">
+      <Position>4</Position>
+      <DataType>VARCHAR(60)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="16" parent="6" name="email">
+      <Position>5</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+    </column>
+    <column id="17" parent="6" name="phoneNumber">
+      <Position>6</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+    </column>
+    <index id="18" parent="6" name="sqlite_autoindex_admins_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>username</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="19" parent="6">
+      <ColNames>username</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_admins_1</UnderlyingIndexName>
+    </key>
+    <key id="20" parent="6">
+      <ColNames>username</ColNames>
+      <UnderlyingIndexName>sqlite_autoindex_admins_1</UnderlyingIndexName>
+    </key>
+    <column id="21" parent="7" name="ID">
+      <Position>1</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="22" parent="7" name="firstName">
+      <Position>2</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="23" parent="7" name="lastName">
+      <Position>3</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="24" parent="7" name="email">
+      <Position>4</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="25" parent="7" name="phoneNumber">
+      <Position>5</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+    </column>
+    <column id="26" parent="7" name="work">
+      <Position>6</Position>
+      <DataType>VARCHAR(10)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="27" parent="7" name="totalBorrowedMaterial">
+      <Position>7</Position>
+      <DataType>INTEGER|0</DataType>
+      <DefaultExpression>0</DefaultExpression>
+    </column>
+    <index id="28" parent="7" name="sqlite_autoindex_borrowers_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>ID</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="29" parent="7">
+      <ColNames>ID</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_borrowers_1</UnderlyingIndexName>
+    </key>
+    <column id="30" parent="8" name="ID">
+      <Position>1</Position>
+      <DataType>INTEGER|0</DataType>
+      <NotNull>1</NotNull>
+      <SequenceIdentity>1</SequenceIdentity>
+    </column>
+    <column id="31" parent="8" name="borrowerID">
+      <Position>2</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="32" parent="8" name="materialID">
+      <Position>3</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="33" parent="8" name="matName">
+      <Position>4</Position>
+      <DataType>VARCHAR(50)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="34" parent="8" name="dateEmprunt">
+      <Position>5</Position>
+      <DataType>DATE|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="35" parent="8" name="dateReturn">
+      <Position>6</Position>
+      <DataType>DATE|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="36" parent="8" name="type">
+      <Position>7</Position>
+      <DataType>VARCHAR(30)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="37" parent="8" name="reference">
+      <Position>8</Position>
+      <DataType>VARCHAR(50)|0</DataType>
+    </column>
+    <column id="38" parent="8" name="quantity">
+      <Position>9</Position>
+      <DataType>INTEGER|0</DataType>
+      <DefaultExpression>0</DefaultExpression>
+    </column>
+    <key id="39" parent="8">
+      <ColNames>ID</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <foreign-key id="40" parent="8">
+      <ColNames>borrowerID</ColNames>
+      <RefTableName>borrowers</RefTableName>
+      <RefColNames>ID</RefColNames>
+    </foreign-key>
+    <foreign-key id="41" parent="8">
+      <ColNames>materialID</ColNames>
+      <RefTableName>materials</RefTableName>
+      <RefColNames>ID</RefColNames>
+    </foreign-key>
+    <column id="42" parent="9" name="ID">
+      <Position>1</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="43" parent="9" name="name">
+      <Position>2</Position>
+      <DataType>VARCHAR(40)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="44" parent="9" name="initQuantity">
+      <Position>3</Position>
+      <DataType>INTEGER|0</DataType>
+      <DefaultExpression>0</DefaultExpression>
+    </column>
+    <column id="45" parent="9" name="availableQuantity">
+      <Position>4</Position>
+      <DataType>INTEGER|0</DataType>
+      <DefaultExpression>0</DefaultExpression>
+    </column>
+    <column id="46" parent="9" name="description">
+      <Position>5</Position>
+      <DataType>STRING|0</DataType>
+    </column>
+    <column id="47" parent="9" name="type">
+      <Position>6</Position>
+      <DataType>VARCHAR(20)|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <index id="48" parent="9" name="sqlite_autoindex_materials_1">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>ID</ColNames>
+      <ColumnCollations></ColumnCollations>
+      <Unique>1</Unique>
+    </index>
+    <key id="49" parent="9">
+      <ColNames>ID</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>sqlite_autoindex_materials_1</UnderlyingIndexName>
+    </key>
+    <column id="50" parent="10" name="type">
+      <Position>1</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="51" parent="10" name="name">
+      <Position>2</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="52" parent="10" name="tbl_name">
+      <Position>3</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="53" parent="10" name="rootpage">
+      <Position>4</Position>
+      <DataType>integer|0</DataType>
+    </column>
+    <column id="54" parent="10" name="sql">
+      <Position>5</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="55" parent="11" name="name">
+      <Position>1</Position>
+    </column>
+    <column id="56" parent="11" name="seq">
+      <Position>2</Position>
+    </column>
+  </database-model>
+</dataSource>
