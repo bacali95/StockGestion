@@ -5,9 +5,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -55,6 +57,7 @@ public class LoginController implements Initializable {
                 Scene scene = new Scene(pane);
                 mainStage.setScene(scene);
                 mainStage.setTitle("Gestionnaire de Stock");
+                mainStage.getIcons().add(new Image(new File("asset/logo.png").toURI().toString()));
                 mainStage.setResizable(false);
                 mainStage.show();
             } else {

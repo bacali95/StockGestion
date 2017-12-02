@@ -1,29 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0"
-            prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.loginApp.LoginController">
-    <TextField fx:id="username" layoutX="221.0" layoutY="119.0" onAction="#login" prefHeight="25.0" prefWidth="177.0"
-               promptText="username"/>
-    <Label fx:id="dbstatus" layoutX="423.0" layoutY="269.0" prefHeight="17.0" prefWidth="65.0"/>
-    <Label layoutX="368.0" layoutY="269.0" text="DB Status"/>
-    <PasswordField fx:id="password" layoutX="221.0" layoutY="152.0" onAction="#login" prefHeight="25.0"
-                   prefWidth="177.0"
-                   promptText="password"/>
-    <Label layoutX="102.0" layoutY="123.0" text="Nom de l'utilisateur :"/>
-    <Label layoutX="102.0" layoutY="156.0" text="Mot de passe :"/>
-    <Label layoutX="185.0" layoutY="53.0" text="Authentication">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.loginApp.LoginController">
+    <TextField fx:id="username" layoutX="221.0" layoutY="109.0" onAction="#login" prefHeight="25.0" prefWidth="177.0" promptText="username" />
+    <Label fx:id="dbstatus" layoutX="423.0" layoutY="269.0" prefHeight="17.0" prefWidth="65.0" />
+    <Label layoutX="368.0" layoutY="269.0" text="DB Status" />
+    <PasswordField fx:id="password" layoutX="221.0" layoutY="142.0" onAction="#login" prefHeight="25.0" prefWidth="177.0" promptText="password" />
+    <Label layoutX="102.0" layoutY="113.0" text="Nom de l'utilisateur :" />
+    <Label layoutX="102.0" layoutY="146.0" text="Mot de passe :" />
+    <Label layoutX="173.0" layoutY="52.0" text="Authentication">
         <font>
-            <Font size="20.0"/>
+            <Font size="24.0" />
         </font>
     </Label>
-    <Button fx:id="connectBtn" layoutX="163.0" layoutY="199.0" mnemonicParsing="false" onAction="#login"
-            prefHeight="25.0" prefWidth="100.0" text="Connecter"/>
-    <Button layoutX="272.0" layoutY="199.0" mnemonicParsing="false" onAction="#exit" prefHeight="25.0"
-            prefWidth="65.0" text="Quitter"/>
-    <Label fx:id="failureLogin" layoutX="205.0" layoutY="235.0" prefHeight="17.0" prefWidth="91.0" text="WRONG LOGIN"
-           textFill="RED"/>
+    <Button fx:id="connectBtn" layoutX="163.0" layoutY="189.0" mnemonicParsing="false" onAction="#login" prefHeight="25.0" prefWidth="100.0" text="Connecter" />
+    <Button layoutX="272.0" layoutY="189.0" mnemonicParsing="false" onAction="#exit" prefHeight="25.0" prefWidth="65.0" text="Quitter" />
+    <Label fx:id="failureLogin" layoutX="205.0" layoutY="225.0" prefHeight="17.0" prefWidth="91.0" text="WRONG LOGIN" textFill="RED" />
+   <ImageView fitHeight="94.0" fitWidth="91.0" layoutY="-12.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+         <Image url="/logo.png" />
+      </image>
+   </ImageView>
 </AnchorPane>
