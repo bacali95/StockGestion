@@ -110,7 +110,6 @@
       <Position>1</Position>
       <DataType>INTEGER|0</DataType>
       <NotNull>1</NotNull>
-      <SequenceIdentity>1</SequenceIdentity>
     </column>
     <column id="31" parent="8" name="borrowerID">
       <Position>2</Position>

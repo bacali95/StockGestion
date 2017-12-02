@@ -4,13 +4,24 @@ import com.DBUtils.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.util.Pair;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -285,6 +296,9 @@ public class MainController implements Initializable {
     @FXML
     public Button cancelEmpBtn;
 
+    @FXML
+    public Button importBtn;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         errorShadow = new DropShadow();
@@ -325,9 +339,20 @@ public class MainController implements Initializable {
         this.empMatComboboxFilterBy.setValue(MaterialsFilter.Tous);
         this.empMatComboboxType.setItems(observableArrayList(MaterialTypes.values()));
         this.textTypeToEmprunt.setItems(observableArrayList(EmpruntTypes.values()));
+        this.impExpCombobox.setItems(observableArrayList(ObjectTypes.values()));
+        this.impExpCombobox.getSelectionModel().select(ObjectTypes.Matériels);
+        this.impExpCombobox.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (this.impExpCombobox.getSelectionModel().getSelectedItem().equals(ObjectTypes.Emprunts)) {
+                this.importBtn.setDisable(true);
+            } else {
+                this.importBtn.setDisable(false);
+            }
+        });
 
         this.searchBtn.fire();
         this.matSearchBtn.fire();
+
+        this.progressBar.setProgress(0.0);
 
         this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
         this.textMatQt.setEditable(true);
@@ -373,6 +398,33 @@ public class MainController implements Initializable {
                 this.tabBorrowers.setItems(this.borrowerData);
             }
         });
+        this.tableBorrowers.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        this.tableMaterials.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    }
+
+    @FXML
+    public Button clearEmpBtn;
+
+    @FXML
+    public Button clearMatBtn;
+
+    @FXML
+    public void initMatView() {
+        this.textMatID.setText("");
+        this.textMatType.setValue(null);
+        this.textMatName.setText("");
+        this.textMatDescription.setText("");
+        this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
+    }
+
+    @FXML
+    public void initEmpView() {
+        this.textID.setText("");
+        this.textFName.setText("");
+        this.textLName.setText("");
+        this.textEmail.setText("");
+        this.textTel.setText("");
+        this.textWork.setValue(null);
     }
 
     @FXML
@@ -471,7 +523,17 @@ public class MainController implements Initializable {
                 i++;
             }
             if (i == 5) {
-                preparedStatement.execute();
+                try {
+                    preparedStatement.execute();
+                } catch (SQLException e) {
+                    ButtonType ouiBtn = new ButtonType("OUI");
+                    ButtonType nonBtn = new ButtonType("NON");
+                    Alert alert = new Alert(Alert.AlertType.WARNING, "Emprunteur existe déjà, Voulez-vous le modifier ?", ouiBtn, nonBtn);
+                    alert.showAndWait();
+                    if (alert.getResult() == ouiBtn) {
+                        this.editBtn.fire();
+                    }
+                }
                 this.comboBoxFilterBy.setValue(BorrowersFilter.Tous);
                 this.searchBtn.fire();
             }
@@ -482,65 +544,184 @@ public class MainController implements Initializable {
     @FXML
     public void deleteBorrower() throws SQLException {
         Connection connection = DBConnection.getConnection();
-        if (connection != null) {
-            String query = "DELETE FROM borrowers WHERE ID = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            if (!this.textID.getText().equals("")) {
-                preparedStatement.setString(1, this.textID.getText());
-                preparedStatement.execute();
-                this.searchBtn.fire();
+        ButtonType ouiBtn = new ButtonType("OUI");
+        ButtonType nonBtn = new ButtonType("NON");
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Êtes-vous sûr de vouloir supprimer cet emprunteur?", ouiBtn, nonBtn);
+        alert.showAndWait();
+        if (alert.getResult() == ouiBtn) {
+            if (connection != null) {
+                String query = "DELETE FROM borrowers WHERE ID = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                if (this.tableBorrowers.getSelectionModel().getSelectedItem() != null) {
+                    preparedStatement.setString(1, this.tableBorrowers.getSelectionModel().getSelectedItem().getID());
+                    preparedStatement.execute();
+                    this.searchBtn.fire();
+                    this.clearEmpBtn.fire();
+                } else {
+                    preparedStatement.setString(1, this.textID.getText());
+                    preparedStatement.execute();
+                    this.searchBtn.fire();
+                    this.clearEmpBtn.fire();
+                }
+                connection.close();
             }
-            connection.close();
         }
 
+    }
+
+    @FXML
+    public Button deleteMatBtn;
+
+    @FXML
+    public void deleteMaterials() throws SQLException {
+        Connection connection = DBConnection.getConnection();
+        ButtonType ouiBtn = new ButtonType("OUI");
+        ButtonType nonBtn = new ButtonType("NON");
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Êtes-vous sûr de vouloir supprimer ces matériels ?", ouiBtn, nonBtn);
+        alert.showAndWait();
+        if (alert.getResult() == ouiBtn) {
+            service = new Service<Pair<Integer, Integer>>() {
+                @Override
+                protected Task<Pair<Integer, Integer>> createTask() {
+                    return new Task<Pair<Integer, Integer>>() {
+                        @Override
+                        protected Pair<Integer, Integer> call() throws SQLException {
+                            tableMaterials.setDisable(true);
+                            Connection connection = DBConnection.getConnection();
+                            if (connection != null) {
+                                String query = "DELETE FROM materials WHERE ID = ?";
+                                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                                ObservableList<MaterialData> materialDatas = tableMaterials.getSelectionModel().getSelectedItems();
+                                for (MaterialData materialData : materialDatas) {
+                                    preparedStatement.setString(1, materialData.getID());
+                                    preparedStatement.execute();
+                                }
+                                matSearchBtn.fire();
+                                connection.close();
+                                tableMaterials.setDisable(false);
+                            }
+                            return null;
+                        }
+                    };
+                }
+            };
+            service.setOnSucceeded(event -> {
+                clearMatBtn.fire();
+                deleteMatsBtn.setDisable(false);
+            });
+            deleteMatsBtn.setDisable(true);
+            service.start();
+        }
+    }
+
+    @FXML
+    public Button deleteBrsBtn;
+
+    @FXML
+    public Button deleteMatsBtn;
+
+    @FXML
+    public void deleteBorrowers() throws SQLException {
+        Connection connection = DBConnection.getConnection();
+        ButtonType ouiBtn = new ButtonType("OUI");
+        ButtonType nonBtn = new ButtonType("NON");
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Êtes-vous sûr de vouloir supprimer ces emprunteurs ?", ouiBtn, nonBtn);
+        alert.showAndWait();
+        if (alert.getResult() == ouiBtn) {
+            service = new Service<Pair<Integer, Integer>>() {
+                @Override
+                protected Task<Pair<Integer, Integer>> createTask() {
+                    return new Task<Pair<Integer, Integer>>() {
+                        @Override
+                        protected Pair<Integer, Integer> call() throws SQLException {
+                            tableBorrowers.setDisable(true);
+                            Connection connection = DBConnection.getConnection();
+                            if (connection != null) {
+                                String query = "DELETE FROM borrowers WHERE ID = ?";
+                                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                                ObservableList<BorrowerData> borrowerDatas = tableBorrowers.getSelectionModel().getSelectedItems();
+                                for (BorrowerData borrowerData : borrowerDatas) {
+                                    preparedStatement.setString(1, borrowerData.getID());
+                                    preparedStatement.execute();
+                                }
+                                searchBtn.fire();
+                                tableBorrowers.setDisable(false);
+                                connection.close();
+                            }
+                            return null;
+                        }
+                    };
+                }
+            };
+            service.setOnSucceeded(event -> {
+                clearEmpBtn.fire();
+                deleteBrsBtn.setDisable(false);
+            });
+            deleteBrsBtn.setDisable(true);
+            service.start();
+        }
     }
 
     @FXML
     public void updateBorrower() throws SQLException {
         Connection connection = DBConnection.getConnection();
         if (connection != null) {
-            String query = "UPDATE borrowers SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?,work = ? WHERE ID = ?";
+            String query = "SELECT ID FROM borrowers WHERE ID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
-            int i = 0;
-            if (this.textID.getText().equals("")) {
-                this.textID.setEffect(errorShadow);
+            preparedStatement.setString(1, this.textID.getText());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                query = "UPDATE borrowers SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?,work = ? WHERE ID = ?";
+                preparedStatement = connection.prepareStatement(query);
+                int i = 0;
+                if (this.textID.getText().equals("")) {
+                    this.textID.setEffect(errorShadow);
+                } else {
+                    this.textID.setEffect(null);
+                    preparedStatement.setString(6, this.textID.getText());
+                    i++;
+                }
+                if (this.textFName.getText().equals("")) {
+                    this.textFName.setEffect(errorShadow);
+                } else {
+                    this.textFName.setEffect(null);
+                    preparedStatement.setString(1, this.textFName.getText());
+                    i++;
+                }
+                if (this.textLName.getText().equals("")) {
+                    this.textLName.setEffect(errorShadow);
+                } else {
+                    this.textLName.setEffect(null);
+                    preparedStatement.setString(2, this.textLName.getText());
+                    i++;
+                }
+                if (this.textEmail.getText().equals("")) {
+                    this.textEmail.setEffect(errorShadow);
+                } else {
+                    this.textEmail.setEffect(null);
+                    preparedStatement.setString(3, this.textEmail.getText());
+                    i++;
+                }
+                preparedStatement.setString(4, this.textTel.getText());
+                if (this.textWork.getValue() == null) {
+                    this.textWork.setEffect(errorShadow);
+                } else {
+                    this.textWork.setEffect(null);
+                    preparedStatement.setString(5, this.textWork.getValue().value());
+                    i++;
+                }
+                if (i == 5) {
+                    preparedStatement.execute();
+                    this.searchBtn.fire();
+                }
             } else {
-                this.textID.setEffect(null);
-                preparedStatement.setString(6, this.textID.getText());
-                i++;
-            }
-            if (this.textFName.getText().equals("")) {
-                this.textFName.setEffect(errorShadow);
-            } else {
-                this.textFName.setEffect(null);
-                preparedStatement.setString(1, this.textFName.getText());
-                i++;
-            }
-            if (this.textLName.getText().equals("")) {
-                this.textLName.setEffect(errorShadow);
-            } else {
-                this.textLName.setEffect(null);
-                preparedStatement.setString(2, this.textLName.getText());
-                i++;
-            }
-            if (this.textEmail.getText().equals("")) {
-                this.textEmail.setEffect(errorShadow);
-            } else {
-                this.textEmail.setEffect(null);
-                preparedStatement.setString(3, this.textEmail.getText());
-                i++;
-            }
-            preparedStatement.setString(4, this.textTel.getText());
-            if (this.textWork.getValue() == null) {
-                this.textWork.setEffect(errorShadow);
-            } else {
-                this.textWork.setEffect(null);
-                preparedStatement.setString(5, this.textWork.getValue().value());
-                i++;
-            }
-            if (i == 5) {
-                preparedStatement.execute();
-                this.searchBtn.fire();
+                ButtonType ouiBtn = new ButtonType("OUI");
+                ButtonType nonBtn = new ButtonType("NON");
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Emprunteur n'existe pas, Voulez-vous l'ajouter?", ouiBtn, nonBtn);
+                alert.showAndWait();
+                if (alert.getResult() == ouiBtn) {
+                    this.addBtn.fire();
+                }
             }
             connection.close();
         }
@@ -692,7 +873,17 @@ public class MainController implements Initializable {
                     i++;
                 }
                 if (i == 3) {
-                    preparedStatement.execute();
+                    try {
+                        preparedStatement.execute();
+                    } catch (SQLException e) {
+                        ButtonType ouiBtn = new ButtonType("OUI");
+                        ButtonType nonBtn = new ButtonType("NON");
+                        Alert alert = new Alert(Alert.AlertType.WARNING, "Matérièl existe déjà, Voulez-vous le modifier ?", ouiBtn, nonBtn);
+                        alert.showAndWait();
+                        if (alert.getResult() == ouiBtn) {
+                            this.editMatBtn.fire();
+                        }
+                    }
                     this.matComboboxFilterBy.setValue(MaterialsFilter.Tous);
                     this.matSearchBtn.fire();
                 }
@@ -702,6 +893,9 @@ public class MainController implements Initializable {
             System.out.println(e.fillInStackTrace().getMessage());
         }
     }
+
+    @FXML
+    public Button editMatBtn;
 
     @FXML
     public void updateMaterial() throws SQLException {
@@ -746,23 +940,46 @@ public class MainController implements Initializable {
                     preparedStatement.execute();
                     this.matSearchBtn.fire();
                 }
+            } else {
+                ButtonType ouiBtn = new ButtonType("OUI");
+                ButtonType nonBtn = new ButtonType("NON");
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Matériel n'existe pas, Voulez-vous l'ajouter?", ouiBtn, nonBtn);
+                alert.showAndWait();
+                if (alert.getResult() == ouiBtn) {
+                    this.addMatBtn.fire();
+                }
             }
             connection.close();
         }
     }
 
     @FXML
+    public Button addMatBtn;
+
+    @FXML
     public void deleteMaterial() throws SQLException {
         Connection connection = DBConnection.getConnection();
-        if (connection != null) {
-            String query = "DELETE FROM materials WHERE ID = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            if (!this.textMatID.getText().equals("")) {
-                preparedStatement.setString(1, this.textMatID.getText());
-                preparedStatement.execute();
-                this.matSearchBtn.fire();
+        ButtonType ouiBtn = new ButtonType("OUI");
+        ButtonType nonBtn = new ButtonType("NON");
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Êtes-vous sûr de vouloir supprimer ce matériel ?", ouiBtn, nonBtn);
+        alert.showAndWait();
+        if (alert.getResult() == ouiBtn) {
+            if (connection != null) {
+                String query = "DELETE FROM materials WHERE ID = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                if (this.tableMaterials.getSelectionModel().getSelectedItem() != null) {
+                    preparedStatement.setString(1, this.tableMaterials.getSelectionModel().getSelectedItem().getID());
+                    preparedStatement.execute();
+                    this.matSearchBtn.fire();
+                    this.clearMatBtn.fire();
+                } else {
+                    preparedStatement.setString(1, this.textMatID.getText());
+                    preparedStatement.execute();
+                    this.matSearchBtn.fire();
+                    this.clearMatBtn.fire();
+                }
+                connection.close();
             }
-            connection.close();
         }
     }
 
@@ -1079,6 +1296,7 @@ public class MainController implements Initializable {
         if (alert.getResult() == ouiBtn) {
             this.switchToEmpruntBtn.fire();
             this.empMatSearchBtn.fire();
+            this.tabPane.getSelectionModel().select(borrowerTab);
         }
     }
 
@@ -1113,4 +1331,190 @@ public class MainController implements Initializable {
             }
         }
     }
+
+    @FXML
+    public ComboBox<ObjectTypes> impExpCombobox;
+
+    @FXML
+    public ProgressBar progressBar;
+
+    private Service<Pair<Integer, Integer>> service;
+
+    @FXML
+    public void importData() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel files (*.xlsx)", "*.xlsx"));
+        File file = fileChooser.showOpenDialog(this.progressBar.getScene().getWindow());
+        if (file != null) {
+            if (this.impExpCombobox.getSelectionModel().getSelectedItem().equals(ObjectTypes.Emprunteurs)) {
+                service = new Service<Pair<Integer, Integer>>() {
+                    @Override
+                    protected Task<Pair<Integer, Integer>> createTask() {
+                        return new Task<Pair<Integer, Integer>>() {
+                            @Override
+                            protected Pair<Integer, Integer> call() throws SQLException, IOException {
+                                Pair<Integer, Integer> pair;
+                                Connection connection = DBConnection.getConnection();
+                                FileInputStream stream = new FileInputStream(file);
+                                XSSFWorkbook sheets = new XSSFWorkbook(stream);
+                                XSSFSheet sheet = sheets.getSheetAt(0);
+                                int succes = 0;
+                                int fails = 0;
+                                if (connection != null) {
+                                    String query;
+                                    PreparedStatement preparedStatement;
+                                    textSucces.setText("");
+                                    textFailure.setText("");
+                                    query = "INSERT INTO borrowers(ID, firstName, lastName, email, phoneNumber, work) VALUES (?,?,?,?,?,?)";
+                                    preparedStatement = connection.prepareStatement(query);
+                                    Row row;
+                                    updateProgress(0, sheet.getLastRowNum());
+                                    boolean test = true;
+                                    for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                                        row = sheet.getRow(i);
+                                        BorrowerData borrowerData = new BorrowerData();
+                                        try {
+                                            borrowerData.setID(((int) row.getCell(0).getNumericCellValue()) + "");
+                                            borrowerData.setFirstName(row.getCell(1).getStringCellValue());
+                                            borrowerData.setLastName(row.getCell(2).getStringCellValue());
+                                            borrowerData.setEmail(row.getCell(3).getStringCellValue());
+                                            borrowerData.setPhoneNumber(((int) row.getCell(4).getNumericCellValue()) + "");
+                                            borrowerData.setWork(row.getCell(5).getStringCellValue());
+
+                                            preparedStatement.setString(1, borrowerData.getID());
+                                            preparedStatement.setString(2, borrowerData.getFirstName());
+                                            preparedStatement.setString(3, borrowerData.getLastName());
+                                            preparedStatement.setString(4, borrowerData.getEmail());
+                                            preparedStatement.setString(5, borrowerData.getPhoneNumber());
+                                            preparedStatement.setString(6, borrowerData.getWork());
+                                            preparedStatement.execute();
+                                            succes++;
+                                        } catch (Exception e) {
+                                            fails++;
+                                        }
+                                        updateProgress(i, sheet.getLastRowNum());
+                                    }
+                                    connection.close();
+                                }
+                                pair = new Pair<>(succes, fails);
+                                return pair;
+                            }
+                        };
+                    }
+                };
+                this.progressBar.progressProperty().bind(service.progressProperty());
+                this.textSucces.setText("");
+                this.textFailure.setText("");
+                this.importBtn.setDisable(true);
+                this.exportBtn.setDisable(true);
+                importExportServiceSettings();
+                service.start();
+            } else if (this.impExpCombobox.getSelectionModel().getSelectedItem().equals(ObjectTypes.Matériels)) {
+                service = new Service<Pair<Integer, Integer>>() {
+                    @Override
+                    protected Task<Pair<Integer, Integer>> createTask() {
+                        return new Task<Pair<Integer, Integer>>() {
+                            @Override
+                            protected Pair<Integer, Integer> call() throws SQLException, IOException {
+                                Pair<Integer, Integer> pair;
+                                Connection connection = DBConnection.getConnection();
+                                FileInputStream stream = new FileInputStream(file);
+                                XSSFWorkbook sheets = new XSSFWorkbook(stream);
+                                XSSFSheet sheet = sheets.getSheetAt(0);
+                                int succes = 0;
+                                int fails = 0;
+                                if (connection != null) {
+                                    String query;
+                                    PreparedStatement preparedStatement;
+                                    textSucces.setText("");
+                                    textFailure.setText("");
+                                    query = "INSERT INTO materials(ID, name, initQuantity, availableQuantity, description, type) VALUES (?,?,?,?,?,?)";
+                                    preparedStatement = connection.prepareStatement(query);
+                                    Row row;
+                                    updateProgress(0, sheet.getLastRowNum());
+                                    boolean test = true;
+                                    for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                                        row = sheet.getRow(i);
+                                        MaterialData materialData = new MaterialData();
+                                        try {
+                                            materialData.setID(row.getCell(0).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                    ((int) row.getCell(0).getNumericCellValue()) + "" :
+                                                    row.getCell(0).getStringCellValue());
+                                            materialData.setName(row.getCell(1).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                    ((int) row.getCell(1).getNumericCellValue()) + "" :
+                                                    row.getCell(1).getStringCellValue());
+                                            materialData.setInitQuantity(row.getCell(2).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                    (int) row.getCell(2).getNumericCellValue() :
+                                                    Integer.valueOf(row.getCell(2).getStringCellValue()));
+                                            materialData.setAvailableQuantity(row.getCell(3).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                    (int) row.getCell(3).getNumericCellValue() :
+                                                    Integer.valueOf(row.getCell(3).getStringCellValue()));
+                                            materialData.setDescription(row.getCell(4) == null ? "" :
+                                                    row.getCell(4).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                            ((int) row.getCell(4).getNumericCellValue()) + "" :
+                                                            row.getCell(4).getStringCellValue());
+                                            materialData.setType(row.getCell(5).getCellType() == Cell.CELL_TYPE_NUMERIC ?
+                                                    ((int) row.getCell(5).getNumericCellValue()) + "" :
+                                                    row.getCell(5).getStringCellValue());
+
+                                            preparedStatement.setString(1, materialData.getID());
+                                            preparedStatement.setString(2, materialData.getName());
+                                            preparedStatement.setInt(3, materialData.getInitQuantity());
+                                            preparedStatement.setInt(4, materialData.getAvailableQuantity());
+                                            preparedStatement.setString(5, materialData.getDescription());
+                                            preparedStatement.setString(6, materialData.getType());
+                                            preparedStatement.execute();
+                                            succes++;
+                                        } catch (Exception e) {
+                                            System.out.println(materialData.toString());
+                                            fails++;
+                                        }
+                                        updateProgress(i, sheet.getLastRowNum());
+                                    }
+                                    connection.close();
+                                }
+                                pair = new Pair<>(succes, fails);
+                                return pair;
+                            }
+                        };
+                    }
+                };
+                this.progressBar.progressProperty().bind(service.progressProperty());
+                this.textSucces.setText("");
+                this.textFailure.setText("");
+                this.importBtn.setDisable(true);
+                this.exportBtn.setDisable(true);
+                importExportServiceSettings();
+                service.start();
+            }
+
+        }
+    }
+
+    private void importExportServiceSettings() {
+        service.setOnSucceeded(event -> {
+            textSucces.setText(service.getValue().getKey() + "");
+            textFailure.setText(service.getValue().getValue() + "");
+            progressBar.progressProperty().unbind();
+            importBtn.setDisable(false);
+            exportBtn.setDisable(false);
+            searchBtn.fire();
+            matSearchBtn.fire();
+        });
+    }
+
+    @FXML
+    public Button exportBtn;
+
+    @FXML
+    public TextField textFailure;
+
+    @FXML
+    public TextField textSucces;
+
+    @FXML
+    Tab borrowerTab;
+
+
 }

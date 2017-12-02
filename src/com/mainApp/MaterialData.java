@@ -25,6 +25,16 @@ public class MaterialData {
         this.type = new SimpleStringProperty(type);
     }
 
+    MaterialData() {
+        this.ID = new SimpleStringProperty();
+        this.name = new SimpleStringProperty();
+        this.initQuantity = new SimpleIntegerProperty();
+        this.availableQuantity = new SimpleIntegerProperty();
+        this.description = new SimpleStringProperty();
+        this.reference = new SimpleStringProperty();
+        this.type = new SimpleStringProperty();
+    }
+
     public int getAvailableQuantity() {
         return availableQuantity.get();
     }
@@ -107,5 +117,18 @@ public class MaterialData {
 
     public void setType(String type) {
         this.type.set(type);
+    }
+
+    @Override
+    public String toString() {
+        return "MaterialData{" +
+                "ID=" + ID +
+                ", name=" + name +
+                ", initQuantity=" + initQuantity +
+                ", availableQuantity=" + availableQuantity +
+                ", description=" + description +
+                ", reference=" + reference +
+                ", type=" + type +
+                '}';
     }
 }

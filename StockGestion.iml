@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="sqlite-jdbc-3.21.0" level="application" />
+    <orderEntry type="library" name="poi-3" level="application" />
+    <orderEntry type="library" name="commons-collections4-4.0" level="application" />
   </component>
 </module>

@@ -1,7 +1,7 @@
 package com.mainApp;
 
 enum Profession {
-    Étudiant, Enseignant;
+    Etudiant, Enseignant;
 
     Profession() {
     }

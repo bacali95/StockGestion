@@ -27,6 +27,17 @@ public class BorrowerData {
         this.reference = new SimpleStringProperty(reference);
     }
 
+    BorrowerData() {
+        this.ID = new SimpleStringProperty();
+        this.firstName = new SimpleStringProperty();
+        this.lastName = new SimpleStringProperty();
+        this.email = new SimpleStringProperty();
+        this.phoneNumber = new SimpleStringProperty();
+        this.work = new SimpleStringProperty();
+        this.totalBorrowedMaterial = new SimpleIntegerProperty();
+        this.reference = new SimpleStringProperty();
+    }
+
     public String getID() {
         return ID.get();
     }
@@ -121,6 +132,20 @@ public class BorrowerData {
 
     public void setReference(String reference) {
         this.reference.set(reference);
+    }
+
+    @Override
+    public String toString() {
+        return "BorrowerData{" +
+                "ID=" + ID +
+                ", firstName=" + firstName +
+                ", lastName=" + lastName +
+                ", email=" + email +
+                ", phoneNumber=" + phoneNumber +
+                ", work=" + work +
+                ", totalBorrowedMaterial=" + totalBorrowedMaterial +
+                ", reference=" + reference +
+                '}';
     }
 }
 

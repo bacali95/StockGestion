@@ -4,6 +4,8 @@
     <root id="archive" name="StockGestion.jar">
       <element id="module-output" name="StockGestion" />
       <element id="library" level="project" name="sqlite-jdbc-3.21.0" />
+      <element id="library" level="project" name="commons-collections4-4.0" />
+      <element id="library" level="project" name="poi-3" />
     </root>
   </artifact>
 </component>

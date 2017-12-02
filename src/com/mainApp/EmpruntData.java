@@ -28,6 +28,19 @@ public class EmpruntData {
         this.quantity = new SimpleIntegerProperty(quantity);
     }
 
+    EmpruntData(){
+        this.ID = new SimpleIntegerProperty();
+        this.borrowerID = new SimpleStringProperty();
+        this.materialID = new SimpleStringProperty();
+        this.matName = new SimpleStringProperty();
+        this.dateEmprunt = new SimpleStringProperty();
+        this.dateReturn = new SimpleStringProperty();
+        this.type= new SimpleStringProperty();
+        this.reference= new SimpleStringProperty();
+        this.quantity = new SimpleIntegerProperty();
+
+    }
+
     public String getMatName() {
         return matName.get();
     }
