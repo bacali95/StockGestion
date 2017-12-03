@@ -353,6 +353,7 @@ public class MainController implements Initializable {
         this.matSearchBtn.fire();
 
         this.progressBar.setProgress(0.0);
+        this.progressDeleteMat.setVisible(false);
 
         this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
         this.textMatQt.setEditable(true);
@@ -592,7 +593,9 @@ public class MainController implements Initializable {
                                 String query = "DELETE FROM materials WHERE ID = ?";
                                 PreparedStatement preparedStatement = connection.prepareStatement(query);
                                 ObservableList<MaterialData> materialDatas = tableMaterials.getSelectionModel().getSelectedItems();
+                                int i =0;
                                 for (MaterialData materialData : materialDatas) {
+                                    updateProgress(i++,materialDatas.size());
                                     preparedStatement.setString(1, materialData.getID());
                                     preparedStatement.execute();
                                 }
@@ -605,9 +608,13 @@ public class MainController implements Initializable {
                     };
                 }
             };
+            this.progressDeleteMat.setVisible(true);
+            this.progressDeleteMat.progressProperty().bind(service.progressProperty());
             service.setOnSucceeded(event -> {
                 clearMatBtn.fire();
                 deleteMatsBtn.setDisable(false);
+                progressDeleteMat.progressProperty().unbind();
+                progressDeleteMat.setVisible(false);
             });
             deleteMatsBtn.setDisable(true);
             service.start();
@@ -640,7 +647,9 @@ public class MainController implements Initializable {
                                 String query = "DELETE FROM borrowers WHERE ID = ?";
                                 PreparedStatement preparedStatement = connection.prepareStatement(query);
                                 ObservableList<BorrowerData> borrowerDatas = tableBorrowers.getSelectionModel().getSelectedItems();
+                                int i = 0;
                                 for (BorrowerData borrowerData : borrowerDatas) {
+                                    updateProgress(i++,borrowerDatas.size());
                                     preparedStatement.setString(1, borrowerData.getID());
                                     preparedStatement.execute();
                                 }
@@ -653,9 +662,13 @@ public class MainController implements Initializable {
                     };
                 }
             };
+            this.progressDeleteBr.setVisible(true);
+            this.progressDeleteBr.progressProperty().bind(service.progressProperty());
             service.setOnSucceeded(event -> {
                 clearEmpBtn.fire();
                 deleteBrsBtn.setDisable(false);
+                progressDeleteBr.progressProperty().unbind();
+                progressDeleteBr.setVisible(false);
             });
             deleteBrsBtn.setDisable(true);
             service.start();
@@ -1508,10 +1521,16 @@ public class MainController implements Initializable {
     public Button exportBtn;
 
     @FXML
-    public TextField textFailure;
+    public Label textFailure;
 
     @FXML
-    public TextField textSucces;
+    public Label textSucces;
+
+    @FXML
+    public ProgressIndicator progressDeleteMat;
+
+    @FXML
+    public ProgressIndicator progressDeleteBr;
 
     @FXML
     Tab borrowerTab;
