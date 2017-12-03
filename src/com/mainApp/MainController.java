@@ -354,6 +354,8 @@ public class MainController implements Initializable {
 
         this.progressBar.setProgress(0.0);
         this.progressDeleteMat.setVisible(false);
+        this.progressDeleteBr.setVisible(false);
+        failsListView.setVisible(false);
 
         this.textMatQt.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE));
         this.textMatQt.setEditable(true);
@@ -593,9 +595,9 @@ public class MainController implements Initializable {
                                 String query = "DELETE FROM materials WHERE ID = ?";
                                 PreparedStatement preparedStatement = connection.prepareStatement(query);
                                 ObservableList<MaterialData> materialDatas = tableMaterials.getSelectionModel().getSelectedItems();
-                                int i =0;
+                                int i = 0;
                                 for (MaterialData materialData : materialDatas) {
-                                    updateProgress(i++,materialDatas.size());
+                                    updateProgress(i++, materialDatas.size());
                                     preparedStatement.setString(1, materialData.getID());
                                     preparedStatement.execute();
                                 }
@@ -649,7 +651,7 @@ public class MainController implements Initializable {
                                 ObservableList<BorrowerData> borrowerDatas = tableBorrowers.getSelectionModel().getSelectedItems();
                                 int i = 0;
                                 for (BorrowerData borrowerData : borrowerDatas) {
-                                    updateProgress(i++,borrowerDatas.size());
+                                    updateProgress(i++, borrowerDatas.size());
                                     preparedStatement.setString(1, borrowerData.getID());
                                     preparedStatement.execute();
                                 }
@@ -1352,6 +1354,7 @@ public class MainController implements Initializable {
     public ProgressBar progressBar;
 
     private Service<Pair<Integer, Integer>> service;
+    private ObservableList<String> failsSet;
 
     @FXML
     public void importData() {
@@ -1360,6 +1363,8 @@ public class MainController implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel files (*.xlsx)", "*.xlsx"));
         File file = fileChooser.showOpenDialog(this.progressBar.getScene().getWindow());
         if (file != null) {
+            failsSet = observableArrayList();
+            failsListView.setVisible(false);
             if (this.impExpCombobox.getSelectionModel().getSelectedItem().equals(ObjectTypes.Emprunteurs)) {
                 service = new Service<Pair<Integer, Integer>>() {
                     @Override
@@ -1405,6 +1410,12 @@ public class MainController implements Initializable {
                                             succes++;
                                         } catch (Exception e) {
                                             fails++;
+                                            failsSet.add((i + 1) + "\t" + borrowerData.getID() + "\t" +
+                                                    borrowerData.getFirstName() + "\t" +
+                                                    borrowerData.getLastName() + "\t" +
+                                                    borrowerData.getEmail() + "\t" +
+                                                    borrowerData.getPhoneNumber());
+                                            preparedStatement = connection.prepareStatement(query);
                                         }
                                         updateProgress(i, sheet.getLastRowNum());
                                     }
@@ -1480,8 +1491,13 @@ public class MainController implements Initializable {
                                             preparedStatement.execute();
                                             succes++;
                                         } catch (Exception e) {
-                                            System.out.println(materialData.toString());
                                             fails++;
+                                            failsSet.add((i + 1) + "\t" + materialData.getID() + "\t" +
+                                                    materialData.getName() + "\t" +
+                                                    materialData.getInitQuantity() + "\t" +
+                                                    materialData.getAvailableQuantity() + "\t" +
+                                                    materialData.getType());
+                                            preparedStatement = connection.prepareStatement(query);
                                         }
                                         updateProgress(i, sheet.getLastRowNum());
                                     }
@@ -1510,12 +1526,19 @@ public class MainController implements Initializable {
             textSucces.setText(service.getValue().getKey() + "");
             textFailure.setText(service.getValue().getValue() + "");
             progressBar.progressProperty().unbind();
+            if (failsSet.size() > 0) {
+                failsListView.setItems(failsSet);
+                failsListView.setVisible(true);
+            }
             importBtn.setDisable(false);
             exportBtn.setDisable(false);
             searchBtn.fire();
             matSearchBtn.fire();
         });
     }
+
+    @FXML
+    public ListView<String> failsListView;
 
     @FXML
     public Button exportBtn;
