@@ -1558,5 +1558,4 @@ public class MainController implements Initializable {
     @FXML
     Tab borrowerTab;
 
-
 }
